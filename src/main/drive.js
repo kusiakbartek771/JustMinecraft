@@ -106,6 +106,17 @@ async function downloadFile(id, destDir, { key, name, signal, onBytes } = {}) {
   }, 3, signal);
 }
 
+/** Czy plik w ogóle warto pobierać (bez pobierania: indeksy packwiz, ukryte foldery, notatki itp.). */
+function worthDownloading(rel, name) {
+  const parts = rel.split('/').filter((p) => !['overrides', '.minecraft', 'minecraft', 'client-overrides'].includes(p.toLowerCase()));
+  if (parts.some((p) => p.startsWith('.'))) return false;
+  const n = (name || parts[parts.length - 1] || '').toLowerCase();
+  if (!n) return true; // pojedynczy plik z linku – nazwa nieznana przed pobraniem
+  if (parts.length > 1 && KNOWN_DIRS.includes(parts[0].toLowerCase())) return true;
+  if (ROOT_FILES.includes(n)) return true;
+  return /\.(jar|zip|mrpack)$/.test(n);
+}
+
 /** Gdzie trafia plik z paczki – na podstawie folderu na Drive lub zawartości archiwum. */
 async function placeFile(inst, tmpFile, rel) {
   let parts = rel.split('/');
@@ -136,7 +147,7 @@ async function importToInstance(inst, link, o = {}) {
   await fsp.mkdir(tmpDir, { recursive: true });
   const prev = o.previous || {}; // fileId -> rel w instancji
   const now = {};
-  const report = { added: [], removed: [], skipped: [], special: [] };
+  const report = { added: [], removed: [], skipped: [], unchanged: [], special: [] };
   try {
     let files;
     if (kind === 'file') files = [{ id, name: null, rel: '' }];
@@ -148,35 +159,56 @@ async function importToInstance(inst, link, o = {}) {
       }
       if (!files.length && !key) throw new Error('Folder jest pusty albo nie jest publiczny (Udostępnij → „Każda osoba mająca link”).');
     }
-    let i = 0;
-    for (const f of files) {
-      i++;
-      o.onProgress?.({ done: i - 1, total: files.length });
-      if (prev[f.id] && fs.existsSync(path.join(inst.dir, prev[f.id]))) { now[f.id] = prev[f.id]; report.skipped.push(prev[f.id]); continue; }
-      o.onStatus?.(`Pobieranie ${f.name || 'pliku'} (${i}/${files.length})`);
-      const fname = await downloadFile(f.id, tmpDir, { key, name: f.name, signal: o.signal });
-      const tmpFile = path.join(tmpDir, fname);
+    // pobieranie równoległe (4 naraz), każdy plik w osobnym katalogu tymczasowym
+    let done = 0;
+    let next = 0;
+    const remembered = [];
+    const handle = async (f) => {
+      if (prev[f.id] && fs.existsSync(path.join(inst.dir, prev[f.id]))) { now[f.id] = prev[f.id]; report.unchanged.push(prev[f.id]); return; }
+      if (f.rel && !worthDownloading(f.rel, f.name)) { report.skipped.push(f.rel); return; }
+      o.onStatus?.(`Pobieranie ${f.name || 'pliku'}`);
+      const fdir = path.join(tmpDir, f.id);
+      const fname = await downloadFile(f.id, fdir, { key, name: f.name, signal: o.signal });
+      const tmpFile = path.join(fdir, fname);
       const rel = f.rel ? f.rel.replace(/[^/]+$/, fname) : fname;
       const target = await placeFile(inst, tmpFile, rel);
-      if (!target) { report.skipped.push(fname); continue; }
+      if (!target) { report.skipped.push(fname); return; }
       if (target.special) {
         report.special.push({ kind: target.special, file: tmpFile, name: fname });
         if (target.special === 'overlay') {
-          await zip.extract(tmpFile, inst.dir, (n) => {
-            const stripped = n.replace(/^(overrides|\.minecraft|minecraft)\//, '');
-            return stripped || false;
-          });
+          await zip.extract(tmpFile, inst.dir, (n) => n.replace(/^(overrides|\.minecraft|minecraft)\//, '') || false);
           now[f.id] = `.justlauncher/overlay-${f.id}`;
         }
-        continue;
+        return;
       }
-      if (!path.resolve(target).startsWith(path.resolve(inst.dir) + path.sep)) continue;
+      if (!path.resolve(target).startsWith(path.resolve(inst.dir) + path.sep)) return;
       await fsp.mkdir(path.dirname(target), { recursive: true });
       await fsp.rename(tmpFile, target).catch(async () => { await fsp.copyFile(tmpFile, target); await fsp.rm(tmpFile, { force: true }); });
       const relInst = path.relative(inst.dir, target).replace(/\\/g, '/');
       now[f.id] = relInst;
       report.added.push(relInst);
-      await content.remember(inst, relInst, { source: 'drive', driveId: f.id, title: null });
+      remembered.push([relInst, f.id]);
+    };
+    const errors = [];
+    const worker = async () => {
+      while (next < files.length) {
+        if (o.signal?.aborted) return;
+        const f = files[next++];
+        try { await handle(f); } catch (e) { errors.push(`${f.name || f.id}: ${e.message}`); }
+        o.onProgress?.({ done: ++done, total: files.length });
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(4, files.length) }, worker));
+    if (o.signal?.aborted) throw o.signal.reason || new Error('Anulowano');
+    if (remembered.length) {
+      const idx = await content.loadIndex(inst);
+      for (const [rel, id] of remembered) idx.files[rel] = { source: 'drive', driveId: id, title: null, at: Date.now() };
+      await content.saveIndex(inst, idx);
+    }
+    if (errors.length) {
+      const e = new Error(`Nie udało się pobrać ${errors.length} plików z Google Drive:\n${errors.slice(0, 3).join('\n')}`);
+      e.partial = { files: now, report };
+      throw e;
     }
     // pliki usunięte przez autora paczki
     if (o.removeMissing !== false) {

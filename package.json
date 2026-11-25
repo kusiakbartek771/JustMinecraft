@@ -1,7 +1,7 @@
 {
   "name": "justlauncher",
   "productName": "JustLauncher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JustLauncher – launcher Minecrafta do modów: Vanilla, Fabric, Quilt, Forge i NeoForge, mody / resource packi / shadery / datapacki z Modrinth, paczki z Google Drive i integracja z JustMusic.",
   "main": "src/main/main.js",
   "author": "JustLauncher contributors",

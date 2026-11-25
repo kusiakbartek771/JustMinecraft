@@ -27,7 +27,7 @@ Pliki `.jar`/`.zip`/`.mrpack` można przeciągnąć do okna.
 Pobierz z [Releases](https://github.com/kusiakbartek771/JustLauncher/releases/latest):
 
 - **Windows** – `JustLauncher-Setup-x.y.z.exe` (możesz wybrać folder instalacji) albo wersja `portable`
-- **Linux** – `JustLauncher-x86_64.AppImage` (aktualizuje się sam), `.deb` albo `.pacman`
+- **Linux** – `JustLauncher-x86_64.AppImage` (aktualizuje się sam; wymaga FUSE 2: Arch `sudo pacman -S fuse2`, Ubuntu `sudo apt install libfuse2`), `.deb` albo `.pacman`
 - **macOS** – `.dmg` (Intel i Apple Silicon). Aplikacja nie jest podpisana: przy pierwszym uruchomieniu kliknij prawym → Otwórz.
 
 > Na Linuksie stare wersje (LWJGL 2, np. 1.12.2) potrzebują programu `xrandr` (Arch: `sudo pacman -S xorg-xrandr`, Ubuntu: `sudo apt install x11-xserver-utils`). Launcher sam o tym przypomni.

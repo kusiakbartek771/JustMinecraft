@@ -472,7 +472,14 @@ handle('drive:packs', async (force) => {
 async function driveImport(inst, link, title) {
   const { promise } = startTask(`Google Drive → ${inst.name}`, async (ctx) => {
     const prev = inst.drive?.files || {};
-    const r = await drive.importToInstance(inst, link, { cacheDir: mc.dirs(dataDir()).cache, apiKey: S().drive.apiKey, previous: prev, removeMissing: !!inst.drive, ...ctx });
+    let r;
+    try {
+      r = await drive.importToInstance(inst, link, { cacheDir: mc.dirs(dataDir()).cache, apiKey: S().drive.apiKey, previous: prev, removeMissing: !!inst.drive, ...ctx });
+    } catch (e) {
+      // część plików się pobrała – zapamiętaj je, żeby ponowna próba dociągnęła tylko resztę
+      if (e.partial) await instances.update(inst.id, { drive: { link, title: title || inst.drive?.title || null, files: { ...prev, ...e.partial.files }, synced: Date.now() } }).catch(() => {});
+      throw e;
+    }
     for (const sp of r.report.special) {
       if (sp.kind === 'modpack') { ctx.onStatus(`Modpack z Drive: ${sp.name}`); await modrinth.applyMrpack(inst, sp.file, ctx); }
     }
