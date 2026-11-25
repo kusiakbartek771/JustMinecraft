@@ -12,5 +12,18 @@
     "version": "1",
     "drive": "https://drive.google.com/drive/folders/TWOJE_ID_FOLDERU"
   },
-  "packs": []
+  "packs": [
+    {
+      "id": "just-mody",
+      "name": "Mody JUST",
+      "description": "Paczka modów autora JustLaunchera (Forge 1.20.1). Kliknij „Aktualizuj”, gdy autor doda nowe mody.",
+      "icon": "⛏️",
+      "cover": "",
+      "mc": "1.20.1",
+      "loader": "forge",
+      "loaderVersion": null,
+      "version": "1",
+      "drive": "https://drive.google.com/drive/folders/1Zln59Lns_peoEF_GNpZLjo9jEAL59vNK"
+    }
+  ]
 }
