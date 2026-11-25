@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "justhud"
+version = "${version}"
+displayName = "JustHUD"
+authors = "JustMinecraft"
+description = "Widżety JustMusic i Minecrafta (wytrzymałość zbroi, współrzędne, FPS, zegar). Edytor w grze: J."
+logoFile = "assets/justhud/icon.png"
+displayTest = "IGNORE_ALL_VERSION"
+
+[[dependencies.justhud]]
+modId = "forge"
+mandatory = true
+versionRange = "${loader_range}"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.justhud]]
+modId = "minecraft"
+mandatory = true
+versionRange = "${mc_range_forge}"
+ordering = "NONE"
+side = "CLIENT"

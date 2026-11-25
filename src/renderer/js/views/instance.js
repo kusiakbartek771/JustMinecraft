@@ -334,6 +334,15 @@ registerView('instance', async (root, param) => {
       setting(t('Pełny ekran'), null, switchEl(!!res.fullscreen, (v) => upd({ resolution: { ...res, fullscreen: v } }))),
       setting(t('Automatyczne dołączanie do serwera'), t('Gra od razu połączy się z tym serwerem'), input(inst.quickJoin || '', (v) => upd({ quickJoin: v.trim() }), { width: '260px', placeholder: 'play.example.com' }))));
 
+    // JustHUD – widżety w grze
+    const hud = await api('justhud:support', id).catch(() => ({ ok: false, reason: '' }));
+    const hudOn = inst.justhud ?? S.settings.game.justhud ?? true;
+    box.append(section(t('Widżety w grze (JustHUD)'),
+      hud.ok
+        ? setting(t('JustHUD'), t('Muzyka z JustMusic, wytrzymałość zbroi, współrzędne, FPS i zegar. W grze naciśnij J, żeby przesunąć widżety, zmienić ich rozmiar, kolor i styl.'),
+          switchEl(hudOn, (v) => upd({ justhud: v })))
+        : setting(t('JustHUD'), hud.reason || t('Niedostępny dla tej instancji'), h('span.chip', { text: t('niedostępny') }))));
+
     if (inst.drive) {
       box.append(section(t('Google Drive'),
         setting(t('Źródło'), inst.drive.link, btn(t('Synchronizuj'), () => syncDrive(), { icon: 'refresh' })),

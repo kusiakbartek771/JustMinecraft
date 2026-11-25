@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "justhud",
+  "version": "${version}",
+  "name": "JustHUD",
+  "description": "Widżety JustMusic i Minecrafta (wytrzymałość zbroi, współrzędne, FPS, zegar). Edytor w grze: J. Dokładany przez launcher JustMinecraft.",
+  "authors": ["JustMinecraft"],
+  "contact": { "homepage": "https://github.com/kusiakbartek771/JustMinecraft" },
+  "license": "MIT",
+  "icon": "assets/justhud/icon.png",
+  "environment": "client",
+  "entrypoints": { "client": ["pl.justminecraft.hud.fabric.JustHudFabric"] },
+  "mixins": ["justhud.mixins.json"],
+  "depends": { "fabricloader": ">=0.14", "minecraft": "${mc_range_fabric}" }
+}

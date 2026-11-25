@@ -17,6 +17,7 @@ const content = require('./content');
 const modrinth = require('./modrinth');
 const curseforge = require('./curseforge');
 const drive = require('./drive');
+const justhud = require('./justhud');
 const accounts = require('./accounts');
 const jm = require('./justmusic');
 const updater = require('./updater');
@@ -600,7 +601,14 @@ async function launchInstance(id, o = {}) {
       const mods = await fsp.readdir(path.join(inst.dir, 'mods')).catch(() => []);
       settings.game = { ...settings.game, memory: { ...settings.game.memory, max: launcher.suggestMemory(mods.filter((m) => m.endsWith('.jar')).length) } };
     }
-    const instance = { ...inst, quickJoin: o.server || inst.quickJoin };
+    // JustHUD (widżety w grze) – dołóż albo usuń właściwy plik
+    const hudOn = inst.justhud ?? settings.game.justhud ?? true;
+    const hud = await justhud.sync(inst, hudOn).catch((e) => { ctx.onLog?.(`[JustMinecraft] JustHUD: ${e.message}`); return null; });
+    if (hud) {
+      await content.remember(inst, path.join('mods', hud), { source: 'justminecraft', title: 'JustHUD', description: 'Widżety w grze (JustMusic, zbroja, współrzędne, FPS, zegar). Edytor: klawisz J. Wbudowany w launcher.', type: 'mod', builtin: true }).catch(() => {});
+    }
+    const port = settings.justmusic?.port || 47851;
+    const instance = { ...inst, quickJoin: o.server || inst.quickJoin, jvmArgs: `${inst.jvmArgs || ''} -Djusthud.port=${port}`.trim() };
     const r = await launcher.launch({
       root: dataDir(), instance, account, settings,
       ctx: { ...ctx, onVersionId: (vid) => instances.update(id, { versionId: vid }).catch(() => {}) },
@@ -628,6 +636,7 @@ async function launchInstance(id, o = {}) {
   return promise;
 }
 handle('game:launch', (id, o) => launchInstance(id, o));
+handle('justhud:support', async (id) => { const s = justhud.support(await instances.get(id)); return { ok: s.ok, reason: s.reason || null, file: s.jar?.file || null }; });
 handle('game:kill', (id) => launcher.kill(id));
 handle('game:running', () => launcher.runningList());
 handle('tasks:list', () => [...tasks.values()].map(publicTask));

@@ -19,7 +19,7 @@ const DEFAULTS = () => ({
   },
   game: {
     memory: { min: 512, max: 4096, auto: true }, jvmPreset: 'balanced', jvmArgs: '', wrapper: '', gamemode: false, dedicatedGpu: false,
-    resolution: { width: 0, height: 0, fullscreen: false }, afterLaunch: 'minimize', showConsoleOnCrash: true, versionTypeLabel: 'JustMinecraft',
+    resolution: { width: 0, height: 0, fullscreen: false }, afterLaunch: 'minimize', showConsoleOnCrash: true, justhud: true, versionTypeLabel: 'JustMinecraft',
   },
   java: { path: '' },
   downloads: { concurrency: 16, autoShaderLoader: true, autoDependencies: true, showSnapshots: false, verifyOnRepair: true },

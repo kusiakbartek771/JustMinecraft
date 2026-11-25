@@ -121,7 +121,10 @@ async function game(body) {
       setting(t('Rozdzielczość'), t('0 = domyślna gry'), input(g.resolution.width || '', (v) => saveSettings({ game: { resolution: { width: Number(v) || 0 } } }), { type: 'number', width: '100px', placeholder: '854' }), h('span.muted', { text: '×' }), input(g.resolution.height || '', (v) => saveSettings({ game: { resolution: { height: Number(v) || 0 } } }), { type: 'number', width: '100px', placeholder: '480' })),
       setting(t('Pełny ekran'), null, switchEl(g.resolution.fullscreen, (v) => saveSettings({ game: { resolution: { fullscreen: v } } }))),
       setting(t('Po uruchomieniu gry'), null, select([['keep', t('Zostaw launcher otwarty')], ['minimize', t('Zminimalizuj launcher')], ['hide', t('Ukryj launcher (wróci po zamknięciu gry)')]], g.afterLaunch, (v) => saveSettings({ game: { afterLaunch: v } }))),
-      setting(t('Pokaż okno awarii'), t('Czytelne podpowiedzi, gdy gra się wysypie'), switchEl(g.showConsoleOnCrash, (v) => saveSettings({ game: { showConsoleOnCrash: v } })))));
+      setting(t('Pokaż okno awarii'), t('Czytelne podpowiedzi, gdy gra się wysypie'), switchEl(g.showConsoleOnCrash, (v) => saveSettings({ game: { showConsoleOnCrash: v } })))),
+    section(t('Widżety w grze (JustHUD)'),
+      setting(t('JustHUD w nowych i istniejących instancjach'), t('Muzyka z JustMusic, wytrzymałość zbroi, współrzędne, FPS i zegar – dokładane automatycznie (Fabric, Quilt, Forge, NeoForge; 1.20.1, 1.20.6, 1.21.1, 1.21.11, 26.3). W grze: klawisz J otwiera edytor. Każda instancja może to zmienić u siebie.'),
+        switchEl(g.justhud !== false, (v) => saveSettings({ game: { justhud: v } })))));
 }
 
 async function java(body) {

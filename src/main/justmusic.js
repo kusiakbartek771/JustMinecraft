@@ -94,8 +94,25 @@ class JustMusicBridge extends EventEmitter {
       });
       return;
     }
+    // mod JustHUD w grze: stan muzyki (bez okładki – lżej) i sterowanie
+    if (url.pathname === '/game/nowplaying' && req.method === 'GET') {
+      const st = this.state;
+      return json(200, {
+        connected: this.clients.size > 0,
+        track: st?.track ? { title: st.track.title, artist: st.track.artist } : null,
+        playing: !!st?.playing, time: st?.time || 0, duration: st?.duration || 0, volume: st?.volume ?? 1, at: this.stateAt || 0, now: Date.now(),
+      });
+    }
+    if (url.pathname === '/game/cmd' && req.method === 'POST') {
+      const { cmd, value } = await this.body(req);
+      if (!['toggle', 'next', 'prev', 'shuffle', 'volume'].includes(cmd)) return json(400, { error: 'nieznane polecenie' });
+      if (!this.clients.size) return json(409, { error: 'JustMusic nie jest połączony' });
+      this.command(cmd, cmd === 'volume' ? { value: Math.max(0, Math.min(1, Number(value) || 0)) } : {});
+      return json(200, { ok: true });
+    }
     if (url.pathname === '/state' && req.method === 'POST') {
       this.state = await this.body(req);
+      this.stateAt = Date.now();
       this.emit('state', this.state);
       return json(200, { ok: true });
     }

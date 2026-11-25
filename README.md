@@ -13,8 +13,9 @@ Działa na **Windows, Linux i macOS**. Aktualizuje się sam – jednym kliknięc
 | 🎮 **Wszystkie loadery** | Vanilla (od 1.5 do najnowszych), Fabric, Quilt, Forge (1.7.10 → najnowszy) i NeoForge (także 1.20.1). Forge/NeoForge instalują się bez okna instalatora. |
 | ☕ **Java sama** | launcher pobiera dokładnie tę Javę, której potrzebuje wersja gry (8, 17, 21, 25…) – od Mojang, a gdy jej brak, Eclipse Temurin. Można też wskazać własną. |
 | 📦 **Instancje** | osobne instalacje z własnymi modami i światami, ikony (emoji/obraz), okładki, kolory, grupy, ulubione, duplikowanie, import folderu `.minecraft` lub innego launchera, wybór folderu instalacji |
-| 🧩 **Modrinth** | wyszukiwarka modów, modpacków, resource packów, shaderów i datapacków; automatyczne zależności; shadery same doinstalowują Iris/Oculus; sprawdzanie i instalacja aktualizacji; rozpoznawanie ręcznie dodanych modów po SHA1 |
+| 🧩 **Modrinth i CurseForge** | wyszukiwarka modów, modpacków, resource packów, shaderów i datapacków; automatyczne zależności; shadery same doinstalowują Iris/Oculus; sprawdzanie i instalacja aktualizacji; rozpoznawanie ręcznie dodanych modów po SHA1 |
 | ⚡ **Wydajność** | równoległe pobieranie z weryfikacją SHA1, profile JVM (G1GC / ZGC / słaby PC), automatyczny dobór RAM do liczby modów, „Pakiet wydajności” jednym kliknięciem (Sodium/Embeddium, Lithium, FerriteCore, ModernFix, EntityCulling…), GameMode i dedykowana karta graficzna na Linuksie |
+| 🖥️ **JustHUD – widżety w grze** | wbudowane w launcher: muzyka z JustMusic (z animowanym korektorem), wytrzymałość zbroi i przedmiotów, współrzędne, FPS, zegar; w grze klawisz **J** otwiera edytor (przeciąganie, rozmiar, styl, kolor akcentu, tło, animacje, klawisze sterowania muzyką) |
 | ☁️ **Google Drive** | import modów z publicznego folderu/pliku; „Paczki autora” widoczne dla wszystkich; synchronizacja pobiera tylko zmiany |
 | 🎵 **JustMusic** | muzyka sama startuje z grą (playlista / wznowienie), ciszej podczas gry, pauza po wyjściu, „teraz gra” w launcherze, uruchamianie Minecrafta z JustMusic |
 | 🛠️ **Bez błędów** | czytelne komunikaty, okno awarii z podpowiedziami (pamięć, Java, konflikty modów), konsola na żywo, raporty awarii, „Napraw instalację” |
@@ -33,6 +34,19 @@ Pobierz z [Releases](https://github.com/kusiakbartek771/JustMinecraft/releases/l
 - **macOS** – `.dmg` (Intel i Apple Silicon). Aplikacja nie jest podpisana: przy pierwszym uruchomieniu kliknij prawym → Otwórz.
 
 > Na Linuksie stare wersje (LWJGL 2, np. 1.12.2) potrzebują programu `xrandr` (Arch: `sudo pacman -S xorg-xrandr`, Ubuntu: `sudo apt install x11-xserver-utils`). Launcher sam o tym przypomni.
+
+## CurseForge
+
+Zakładka **Odkrywaj → CurseForge** i import modpacków `.zip`. CurseForge wymaga klucza API:
+załóż go za darmo na <https://console.curseforge.com> i wpisz w **Ustawienia → Pobieranie**
+(albo dodaj sekret `CURSEFORGE_API_KEY` w repozytorium – trafi do wydań dla wszystkich).
+Pliki, których autorzy zablokowali pobieranie poza stroną CurseForge, launcher pokazuje z linkiem do pobrania ręcznie.
+
+## JustHUD (widżety w grze)
+
+Launcher sam dokłada JustHUD do instancji Fabric, Quilt, Forge i NeoForge (Minecraft 1.20.1, 1.20.6, 1.21.1, 1.21.11, 26.3).
+Wyłączysz go w ustawieniach instancji albo globalnie (Ustawienia → Gra i wydajność). W grze naciśnij **J**.
+Kod moda jest w [`mod/`](mod) – `npm run mod:build` buduje wszystkie wersje i kopiuje je do `assets/justhud/`.
 
 ## Konta
 
@@ -69,7 +83,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.1.3 && git push origin main v1.1.3`
+2. `git tag v1.2.0 && git push origin main v1.2.0`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura
