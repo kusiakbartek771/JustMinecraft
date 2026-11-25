@@ -4,7 +4,7 @@ import { h, btn, select, switchEl, slider, setting, section, segmented, input, t
 import { icon } from '../icons.js';
 import { t, LANGS, setLang } from '../i18n.js';
 import { registerView, rerender, navigate } from '../router.js';
-import { THEMES, FONTS, ACCENTS, applyAppearance } from '../theme.js';
+import { THEMES, THEME_GROUPS, FONTS, ACCENTS, applyAppearance } from '../theme.js';
 import { installUpdate } from '../shell.js';
 import { changeDataDir } from './onboarding.js';
 
@@ -61,9 +61,11 @@ function renderSection(k, body) {
 
 function appearance(body) {
   const a = ap();
-  const tiles = h('div.theme-grid');
-  for (const [id, th] of Object.entries(THEMES)) {
-    tiles.append(h(`button.theme-tile${a.theme === id ? '.active' : ''}`, { onClick: () => { setAp({ theme: id }); rerender(); } },
+  const tiles = h('div.col', { style: { gap: '14px' } });
+  for (const g of THEME_GROUPS) {
+    const grid = h('div.theme-grid');
+    tiles.append(h('div.muted.small', { style: { fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase' }, text: g === 'JustMinecraft' ? t('Motywy launchera') : g }), grid);
+    for (const [id, th] of Object.entries(THEMES).filter(([, x]) => (x.group || 'JustMinecraft') === g)) grid.append(h(`button.theme-tile${a.theme === id ? '.active' : ''}`, { onClick: () => { setAp({ theme: id }); rerender(); } },
       h('div.prev', { style: { background: th.bg } }, h('i', { style: { width: '22%', background: th.surface } }), h('i', { style: { flex: 1, background: `linear-gradient(135deg, ${th.g1}, ${th.g2})` } }), h('i', { style: { width: '14%', background: a.customAccent ? a.accent : th.accent } })),
       h('span', { style: { background: th.surface, color: th.text }, text: t(th.name) })));
   }

@@ -18,7 +18,7 @@ Działa na **Windows, Linux i macOS**. Aktualizuje się sam – jednym kliknięc
 | ☁️ **Google Drive** | import modów z publicznego folderu/pliku; „Paczki autora” widoczne dla wszystkich; synchronizacja pobiera tylko zmiany |
 | 🎵 **JustMusic** | muzyka sama startuje z grą (playlista / wznowienie), ciszej podczas gry, pauza po wyjściu, „teraz gra” w launcherze, uruchamianie Minecrafta z JustMusic |
 | 🛠️ **Bez błędów** | czytelne komunikaty, okno awarii z podpowiedziami (pamięć, Java, konflikty modów), konsola na żywo, raporty awarii, „Napraw instalację” |
-| 🎨 **Customizacja** | 12 motywów, kolor akcentu, tło (gradient / obraz z rozmyciem), efekt szkła, zaokrąglenia, czcionki, rozmiar tekstu, gęstość, panel po lewej/prawej, kompaktowy panel, animacje, własny CSS, polski i angielski |
+| 🎨 **Customizacja** | 47 motywów (w tym wszystkie z JustMusic i EvenMoreColors), kolor akcentu, tło (gradient / obraz z rozmyciem), efekt szkła, zaokrąglenia, czcionki, rozmiar tekstu, gęstość, panel po lewej/prawej, kompaktowy panel, animacje, własny CSS, polski i angielski |
 | 🔄 **Aktualizacje** | z GitHub Releases – w tle albo jednym kliknięciem |
 
 Skróty: <kbd>Ctrl</kbd>+<kbd>N</kbd> nowa instancja, <kbd>Ctrl</kbd>+<kbd>F</kbd> szukaj, <kbd>Ctrl</kbd>+<kbd>,</kbd> ustawienia, <kbd>Ctrl</kbd>+<kbd>1…5</kbd> sekcje.
@@ -69,7 +69,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.1.2 && git push origin main v1.1.2`
+2. `git tag v1.1.3 && git push origin main v1.1.3`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura

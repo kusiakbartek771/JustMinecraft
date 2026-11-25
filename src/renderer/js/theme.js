@@ -15,6 +15,75 @@ export const THEMES = {
   sand: { name: 'Piasek (jasny)', bg: '#f3efe6', surface: '#fffdf8', surface2: '#f7f2e8', elevated: '#ffffff', text: '#2a241b', dim: '#6f6556', border: 'rgba(60,40,10,.1)', accent: '#c2410c', dark: false, g1: '#f7d9a8', g2: '#e8c7b0' },
 };
 
+// ---- motywy z JustMusic (wbudowane + wtyczka EvenMoreColors), przeliczone na format launchera ----
+function jmHsl(hh, s, l) {
+  s /= 100; l /= 100;
+  const k = (n) => (n + hh / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  return '#' + [f(0), f(8), f(4)].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+}
+function jmPalette(hue, { light = false, sat = 70, accentHue = hue, tint = 22, name } = {}) {
+  const accent = light ? jmHsl(accentHue, Math.min(95, sat + 15), 48) : jmHsl(accentHue, Math.min(95, sat + 15), 64);
+  const v = light
+    ? { bg: jmHsl(hue, tint, 95), surface: jmHsl(hue, tint, 99), 'surface-2': jmHsl(hue, tint, 93), elevated: '#ffffff', text: jmHsl(hue, 25, 12), 'text-dim': jmHsl(hue, 10, 42), border: jmHsl(hue, tint, 87) }
+    : { bg: jmHsl(hue, tint, 6), surface: jmHsl(hue, tint, 9), 'surface-2': jmHsl(hue, tint - 2, 13), elevated: jmHsl(hue, tint - 4, 17), text: jmHsl(hue, 25, 94), 'text-dim': jmHsl(hue, 12, 62), border: jmHsl(hue, tint - 4, 16) };
+  return { name, ...v, accent };
+}
+const JM_PRESETS = {
+  midnight: { name: 'Midnight', bg: '#0d0e12', surface: '#15171d', 'surface-2': '#1c1f27', elevated: '#252935', text: '#eef0f6', 'text-dim': '#8b91a3', accent: '#7c5cff', border: '#262a35' },
+  oled: { name: 'OLED Black', bg: '#000000', surface: '#08080a', 'surface-2': '#121215', elevated: '#1c1c21', text: '#ffffff', 'text-dim': '#8a8a94', accent: '#00e0a4', border: '#1d1d22' },
+  fjord: { name: 'Fjord', bg: '#1d222b', surface: '#242a35', 'surface-2': '#2b3240', elevated: '#353d4d', text: '#e5e9f0', 'text-dim': '#97a2b4', accent: '#88c0d0', border: '#343c4b' },
+  grape: { name: 'Neon Grape', bg: '#120e1c', surface: '#1a1528', 'surface-2': '#231c35', elevated: '#2d2443', text: '#f3eefe', 'text-dim': '#9e92bc', accent: '#ff4fd8', border: '#2e2544' },
+  forest: { name: 'Forest', bg: '#0e1411', surface: '#141c18', 'surface-2': '#1b2620', elevated: '#22302a', text: '#e8f2ec', 'text-dim': '#8ca497', accent: '#4ade80', border: '#23312a' },
+  sunset: { name: 'Sunset', bg: '#18110f', surface: '#211715', 'surface-2': '#2b1e1b', elevated: '#362522', text: '#fdf0ea', 'text-dim': '#b39a91', accent: '#ff7a45', border: '#3a2a26' },
+  ocean: { name: 'Ocean', bg: '#09131f', surface: '#0e1b2a', 'surface-2': '#142435', elevated: '#1a2d42', text: '#e6f1fb', 'text-dim': '#86a0b8', accent: '#38bdf8', border: '#1b2f44' },
+  crimson: { name: 'Crimson', bg: '#130c0e', surface: '#1b1214', 'surface-2': '#25181b', elevated: '#301f23', text: '#fbecef', 'text-dim': '#a98e94', accent: '#ff3d5e', border: '#332226' },
+  daylight: { name: 'Daylight', bg: '#eef0f5', surface: '#ffffff', 'surface-2': '#f3f4f8', elevated: '#ffffff', text: '#15171c', 'text-dim': '#636a7a', accent: '#5b4bff', border: '#e1e4eb' },
+  rose: { name: 'Rosé', bg: '#f8eeee', surface: '#fffafa', 'surface-2': '#f6e8e7', elevated: '#ffffff', text: '#2b1d1f', 'text-dim': '#8a6f73', accent: '#e0457b', border: '#ecdad8' },
+  sand: { name: 'Sand', bg: '#f3efe6', surface: '#fbf8f1', 'surface-2': '#efe9dc', elevated: '#ffffff', text: '#2a261e', 'text-dim': '#7c7465', accent: '#c2410c', border: '#e3dccb' },
+};
+const JM_EXTRA = {
+  aurora: jmPalette(165, { name: 'Aurora', accentHue: 150, sat: 70 }),
+  nebula: jmPalette(265, { name: 'Nebula', accentHue: 290, sat: 75 }),
+  volcano: jmPalette(10, { name: 'Volcano', accentHue: 18, sat: 85, tint: 18 }),
+  glacier: jmPalette(205, { name: 'Glacier', accentHue: 195, sat: 70 }),
+  matcha: jmPalette(95, { name: 'Matcha', accentHue: 85, sat: 55, tint: 16 }),
+  amber: jmPalette(35, { name: 'Amber', accentHue: 40, sat: 90, tint: 16 }),
+  sakura: jmPalette(335, { name: 'Sakura Night', accentHue: 340, sat: 75 }),
+  deepsea: jmPalette(220, { name: 'Deep Sea', accentHue: 175, sat: 70, tint: 35 }),
+  royal: jmPalette(240, { name: 'Royal', accentHue: 48, sat: 80, tint: 30 }),
+  citrus: jmPalette(60, { name: 'Citrus', accentHue: 75, sat: 85, tint: 10 }),
+  cyberpunk: { name: 'Cyberpunk', bg: '#0a0612', surface: '#120b1f', 'surface-2': '#1a1030', elevated: '#22163f', text: '#f8f0ff', 'text-dim': '#9b8ab8', accent: '#fcee0a', border: '#2a1b48' },
+  synthwave: { name: 'Synthwave', bg: '#140b22', surface: '#1c1030', 'surface-2': '#26163f', elevated: '#301d4f', text: '#ffe9ff', 'text-dim': '#b48fc9', accent: '#ff2e97', border: '#3a2259' },
+  matrix: { name: 'Matrix', bg: '#000400', surface: '#020a03', 'surface-2': '#051307', elevated: '#08200c', text: '#c8ffc8', 'text-dim': '#4f9a57', accent: '#00ff41', border: '#0b2a10' },
+  coffee: { name: 'Espresso', bg: '#14100d', surface: '#1c1612', 'surface-2': '#251d17', elevated: '#2f251e', text: '#f3e9df', 'text-dim': '#a8968a', accent: '#d4a373', border: '#33281f' },
+  slate: { name: 'Slate', bg: '#0f1115', surface: '#161a20', 'surface-2': '#1d222a', elevated: '#252b35', text: '#e6e9ef', 'text-dim': '#8a93a3', accent: '#94a3b8', border: '#272d38' },
+  rosegold: { name: 'Rose Gold', bg: '#1a1213', surface: '#22181a', 'surface-2': '#2c1f22', elevated: '#36272a', text: '#fbeff0', 'text-dim': '#b8999d', accent: '#e8a598', border: '#3a2a2d' },
+  contrast: { name: 'Wysoki kontrast', bg: '#000000', surface: '#000000', 'surface-2': '#0d0d0d', elevated: '#1a1a1a', text: '#ffffff', 'text-dim': '#d0d0d0', accent: '#ffff00', border: '#ffffff' },
+  mint: jmPalette(160, { name: 'Mint Cream', light: true, accentHue: 165, sat: 60, tint: 30 }),
+  lavender: jmPalette(260, { name: 'Lavender', light: true, accentHue: 265, sat: 60, tint: 35 }),
+  peach: jmPalette(22, { name: 'Peach', light: true, accentHue: 14, sat: 75, tint: 40 }),
+  sky: jmPalette(205, { name: 'Sky', light: true, accentHue: 210, sat: 75, tint: 40 }),
+  paper: jmPalette(45, { name: 'Paper', light: true, accentHue: 220, sat: 55, tint: 18 }),
+  lagoon: jmPalette(190, { name: 'Lagoon', light: true, accentHue: 185, sat: 80, tint: 45 }),
+  contrastlight: { name: 'Wysoki kontrast (jasny)', bg: '#ffffff', surface: '#ffffff', 'surface-2': '#f2f2f2', elevated: '#ffffff', text: '#000000', 'text-dim': '#333333', accent: '#0040ff', border: '#000000' },
+};
+function mixHex(a, b, t) {
+  const A = hexToRgb(a), B = hexToRgb(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+function fromJM(d, group) {
+  const dark = relLum(d.bg) < 0.5;
+  // poświata tła: akcent wmieszany w tło (jak w motywach launchera)
+  return { name: d.name, group, bg: d.bg, surface: d.surface, surface2: d['surface-2'], elevated: d.elevated, text: d.text, dim: d['text-dim'], border: d.border, accent: d.accent, dark,
+    g1: mixHex(d.bg, d.accent, dark ? 0.32 : 0.28), g2: mixHex(d.bg, d['text-dim'], dark ? 0.18 : 0.22) };
+}
+for (const [id, d] of Object.entries(JM_PRESETS)) THEMES[`jm_${id}`] = fromJM(d, 'JustMusic');
+for (const [id, d] of Object.entries(JM_EXTRA)) THEMES[`jm_emc_${id}`] = fromJM(d, 'JustMusic · EvenMoreColors');
+
+export const THEME_GROUPS = ['JustMinecraft', 'JustMusic', 'JustMusic · EvenMoreColors'];
+
 export const FONTS = [['Inter', 'Inter'], ['System', 'Systemowa'], ['Nunito', 'Zaokrąglona'], ['JetBrains Mono', 'Pikselowa / mono'], ['Serif', 'Szeryfowa']];
 export const ACCENTS = ['#7c5cff', '#4ade80', '#38bdf8', '#f97316', '#f472b6', '#facc15', '#ef4444', '#22d3ee', '#a3e635', '#e879f9'];
 
@@ -23,6 +92,11 @@ function hexToRgb(hex) {
   if (x.length === 3) x = x.split('').map((c) => c + c).join('');
   const n = parseInt(x, 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function relLum(hex) {
+  const [r, g, b] = hexToRgb(hex).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function contrastText(hex) {

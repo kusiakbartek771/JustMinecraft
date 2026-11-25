@@ -28,7 +28,7 @@ export function onboarding(done) {
           h('div.row', { style: { justifyContent: 'space-between', marginTop: '20px' } }, btn(t('Wstecz'), () => { step = 0; draw(); }, { kind: 'ghost' }), btn(t('Dalej'), () => { step = 2; draw(); }, { kind: 'primary', icon: 'chevronRight' })));
       } else {
         const grid = h('div.choice-grid');
-        for (const [id, th] of Object.entries(THEMES)) {
+        for (const [id, th] of Object.entries(THEMES).filter(([, x]) => !x.group?.includes('EvenMoreColors'))) {
           grid.append(h(`button.choice${S.settings.appearance.theme === id ? '.active' : ''}`, { onClick: () => { saveSettings({ appearance: { theme: id } }); applyAppearance(S.settings.appearance); draw(); } },
             h('span.loader-dot', { style: { background: `linear-gradient(135deg, ${th.accent}, ${th.g1})`, width: '34px', height: '34px' } }), t(th.name)));
         }
