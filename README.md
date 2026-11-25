@@ -1,8 +1,10 @@
-# JustLauncher ⛏️🎵
+# JustMinecraft ⛏️🎵
 
 Launcher Minecrafta do modów – **Vanilla, Fabric, Quilt, Forge i NeoForge**, mody / modpacki / resource packi /
 shadery / datapacki z **Modrinth**, paczki z **Google Drive** dla wszystkich i integracja z **[JustMusic](https://github.com/kusiakbartek771/JustMusic)**.
 Działa na **Windows, Linux i macOS**. Aktualizuje się sam – jednym kliknięciem.
+
+> Wcześniej: **JustLauncher** – stare wersje same zaktualizują się do JustMinecraft, ustawienia i instancje zostają.
 
 ## Funkcje
 
@@ -24,10 +26,10 @@ Pliki `.jar`/`.zip`/`.mrpack` można przeciągnąć do okna.
 
 ## Instalacja
 
-Pobierz z [Releases](https://github.com/kusiakbartek771/JustLauncher/releases/latest):
+Pobierz z [Releases](https://github.com/kusiakbartek771/JustMinecraft/releases/latest):
 
-- **Windows** – `JustLauncher-Setup-x.y.z.exe` (możesz wybrać folder instalacji) albo wersja `portable`
-- **Linux** – `JustLauncher-x86_64.AppImage` (aktualizuje się sam; wymaga FUSE 2: Arch `sudo pacman -S fuse2`, Ubuntu `sudo apt install libfuse2`), `.deb` albo `.pacman`
+- **Windows** – `JustMinecraft-Setup-x.y.z.exe` (możesz wybrać folder instalacji) albo wersja `portable`
+- **Linux** – `JustMinecraft-x86_64.AppImage` (aktualizuje się sam; wymaga FUSE 2: Arch `sudo pacman -S fuse2`, Ubuntu `sudo apt install libfuse2`), `.deb` albo `.pacman`
 - **macOS** – `.dmg` (Intel i Apple Silicon). Aplikacja nie jest podpisana: przy pierwszym uruchomieniu kliknij prawym → Otwórz.
 
 > Na Linuksie stare wersje (LWJGL 2, np. 1.12.2) potrzebują programu `xrandr` (Arch: `sudo pacman -S xorg-xrandr`, Ubuntu: `sudo apt install x11-xserver-utils`). Launcher sam o tym przypomni.
@@ -39,7 +41,7 @@ Microsoft wymaga, by każdy launcher miał **własną aplikację Azure zatwierdz
 1. [Azure Portal](https://portal.azure.com) → *App registrations* → *New registration* → konta: **Personal Microsoft accounts only**.
 2. *Authentication* → *Allow public client flows* = **Yes**.
 3. Skopiuj *Application (client) ID* i wypełnij formularz dostępu do API Minecrafta: <https://aka.ms/mce-reviewappid>.
-4. Po akceptacji wpisz ID w `package.json` → `justlauncher.msClientId` (dla wszystkich) albo w Ustawienia → Zaawansowane.
+4. Po akceptacji wpisz ID w `package.json` → `justminecraft.msClientId` (dla wszystkich) albo w Ustawienia → Zaawansowane.
 
 Do tego czasu działają konta offline (singleplayer i serwery bez weryfikacji).
 
@@ -55,7 +57,7 @@ Każdy może też wkleić dowolny link w „Import z linku Drive”. Gdy zmienis
 ## JustMusic
 
 1. Zainstaluj [JustMusic](https://github.com/kusiakbartek771/JustMusic).
-2. W launcherze: **JustMusic → Zainstaluj wtyczkę** (albo w JustMusic: Ustawienia → Pluginy → sklep → „Minecraft (JustLauncher)”).
+2. W launcherze: **JustMusic → Zainstaluj wtyczkę** (albo w JustMusic: Ustawienia → Pluginy → sklep → „Minecraft (JustMinecraft)”).
 3. Włącz wtyczkę w JustMusic – połączenie (lokalnie, `127.0.0.1:47851`) nawiąże się samo.
 
 Wtyczka jest w folderze [`justmusic-plugin/`](justmusic-plugin).
@@ -74,7 +76,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.0.1 && git push origin main v1.0.1`
+2. `git tag v1.1.0 && git push origin main v1.1.0`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura

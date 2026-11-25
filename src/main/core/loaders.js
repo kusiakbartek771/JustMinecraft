@@ -220,7 +220,7 @@ async function installForgeLike(root, loader, mcv, lv, ctx) {
   await net.downloadAll(tasks, { onProgress: ctx.onProgress, signal: ctx.signal });
 
   // zmienne procesorów
-  const tmp = await fsp.mkdtemp(path.join(os.tmpdir(), 'justlauncher-forge-'));
+  const tmp = await fsp.mkdtemp(path.join(os.tmpdir(), 'justminecraft-forge-'));
   try {
     const vars = {
       SIDE: 'client', MINECRAFT_JAR: clientJar, MINECRAFT_VERSION: mcv, ROOT: root,
@@ -267,7 +267,7 @@ async function installForgeLike(root, loader, mcv, lv, ctx) {
       for (const [f, h] of outputs) {
         if (!(await net.exists(f))) throw new Error(`Procesor ${p.jar} nie utworzył pliku ${path.basename(f)}`);
         // suma może się różnić przez inną implementację zlib w Javie (np. zlib-ng) – plik i tak jest poprawny
-        if (h && !(await net.isValid(f, { sha1: h, verify: true }))) ctx.onLog?.(`[JustLauncher] Uwaga: inna suma SHA1 pliku ${path.basename(f)} niż w instalatorze (to normalne przy innej wersji zlib)`);
+        if (h && !(await net.isValid(f, { sha1: h, verify: true }))) ctx.onLog?.(`[JustMinecraft] Uwaga: inna suma SHA1 pliku ${path.basename(f)} niż w instalatorze (to normalne przy innej wersji zlib)`);
       }
     }
   } finally {

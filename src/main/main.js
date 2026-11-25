@@ -1,4 +1,4 @@
-// JustLauncher – proces główny: okno, IPC, zadania w tle (instalacje, pobieranie), uruchamianie gry.
+// JustMinecraft – proces główny: okno, IPC, zadania w tle (instalacje, pobieranie), uruchamianie gry.
 const { app, BrowserWindow, ipcMain, dialog, shell, nativeTheme, Menu, screen } = require('electron');
 const fs = require('fs');
 const fsp = require('fs/promises');
@@ -24,7 +24,12 @@ const PKG = require('../../package.json');
 const DEV = process.argv.includes('--dev');
 const ROOT = path.join(__dirname, '..', '..');
 
-app.setName('JustLauncher');
+app.setName('JustMinecraft');
+// do wersji 1.1.0 aplikacja nazywała się JustLauncher – istniejące dane (ustawienia, konta, instancje) zostają w starym folderze
+{
+  const legacy = path.join(app.getPath('appData'), 'JustLauncher');
+  if (!fs.existsSync(path.join(app.getPath('userData'), 'settings.json')) && fs.existsSync(path.join(legacy, 'settings.json'))) app.setPath('userData', legacy);
+}
 // testy/rozwój: osobny folder danych i automatyczne zrzuty ekranu (JL_SHOT=plik.png, JL_SHOT_JS=kod do wykonania)
 if (process.env.JL_USERDATA) app.setPath('userData', path.resolve(process.env.JL_USERDATA));
 if (process.platform === 'win32') app.setAppUserModelId('app.justlauncher.minecraft');
@@ -148,12 +153,12 @@ const handle = (ch, fn) => ipcMain.handle(ch, async (_e, ...args) => {
   }
 });
 
-const msClientId = () => S().advanced.msClientId || PKG.justlauncher?.msClientId || '';
+const msClientId = () => S().advanced.msClientId || PKG.justminecraft?.msClientId || '';
 
 handle('app:info', () => ({
   version: PKG.version, platform: process.platform, arch: process.arch, totalMem: Math.floor(os.totalmem() / 1048576),
-  cpus: os.cpus().length, userData: app.getPath('userData'), dev: DEV, msConfigured: !!msClientId(), repo: PKG.justlauncher.repo,
-  issuesUrl: PKG.justlauncher.issuesUrl, electron: process.versions.electron, packaged: app.isPackaged,
+  cpus: os.cpus().length, userData: app.getPath('userData'), dev: DEV, msConfigured: !!msClientId(), repo: PKG.justminecraft.repo,
+  issuesUrl: PKG.justminecraft.issuesUrl, electron: process.versions.electron, packaged: app.isPackaged,
 }));
 
 handle('settings:get', () => S());
@@ -173,7 +178,7 @@ handle('settings:set', (patch) => {
 });
 handle('settings:reset', (section) => store.reset(section));
 handle('settings:export', async () => {
-  const r = await dialog.showSaveDialog(win, { defaultPath: 'justlauncher-ustawienia.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
+  const r = await dialog.showSaveDialog(win, { defaultPath: 'justminecraft-ustawienia.json', filters: [{ name: 'JSON', extensions: ['json'] }] });
   if (r.canceled) return false;
   const { window: _w, ...rest } = S();
   await fsp.writeFile(r.filePath, JSON.stringify(rest, null, 2));
@@ -298,7 +303,7 @@ handle('instances:repair', async (id) => {
 handle('instances:logs', async (id) => {
   const inst = await instances.get(id);
   const out = [];
-  for (const f of ['logs/justlauncher-latest.log', 'logs/latest.log']) {
+  for (const f of ['logs/justminecraft-latest.log', 'logs/justlauncher-latest.log', 'logs/latest.log']) {
     try { out.push({ name: f, text: (await fsp.readFile(path.join(inst.dir, f), 'utf8')).slice(-400000) }); } catch {}
   }
   let crashes = [];
@@ -464,7 +469,7 @@ let packsCache = null;
 handle('drive:packs', async (force) => {
   if (packsCache && !force && Date.now() - packsCache.at < 10 * 60e3) return packsCache.data;
   let data = null;
-  try { data = await net.json(`${PKG.justlauncher.packsUrl}?t=${Date.now()}`, { retries: 1 }); } catch {}
+  try { data = await net.json(`${PKG.justminecraft.packsUrl}?t=${Date.now()}`, { retries: 1 }); } catch {}
   if (!data) data = JSON.parse(await fsp.readFile(path.join(ROOT, 'packs', 'packs.json'), 'utf8').catch(() => '{"packs":[]}'));
   packsCache = { at: Date.now(), data };
   return data;

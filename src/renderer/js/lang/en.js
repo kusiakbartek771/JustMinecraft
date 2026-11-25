@@ -5,7 +5,7 @@ export default {
   'Otwórz folder': 'Open folder', 'Konta': 'Accounts', 'Dodaj konto': 'Add account', 'Kliknij, aby się zalogować': 'Click to sign in', 'Offline': 'Offline',
   'Zadania': 'Tasks', 'Gotowe': 'Done', 'gotowe': 'done', 'Brak zadań': 'No tasks', 'Anuluj': 'Cancel', 'OK': 'OK', 'Zapisz': 'Save',
   'Poprzedni': 'Previous', 'Następny': 'Next', 'Pauza': 'Pause', 'Więcej': 'More', 'Wstecz': 'Back', 'Wróć': 'Back',
-  'Witaj w JustLauncher!': 'Welcome to JustLauncher!',
+  'Witaj w JustMinecraft!': 'Welcome to JustMinecraft!',
   'Stwórz pierwszą instancję – wybierz wersję Minecrafta i loader (Vanilla, Fabric, Quilt, Forge albo NeoForge). Wszystko pobierze się samo, łącznie z Javą.': 'Create your first instance – pick a Minecraft version and a loader (Vanilla, Fabric, Quilt, Forge or NeoForge). Everything downloads automatically, including Java.',
   'Nowa instancja': 'New instance', 'Paczki z Google Drive': 'Google Drive packs', 'Modpacki z Modrinth': 'Modrinth modpacks',
   'instancji': 'instances', 'łącznie w grze': 'played in total', 'pamięci dla gry': 'game memory', 'auto': 'auto', 'połączono': 'connected', 'rozłączono': 'disconnected',

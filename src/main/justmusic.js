@@ -79,7 +79,7 @@ class JustMusicBridge extends EventEmitter {
     // zapisujące żądania muszą mieć nagłówek (wymusza preflight CORS – strony WWW go nie przejdą)
     if (req.method === 'POST' && req.headers['x-justlauncher'] !== '1') return json(403, { error: 'brak nagłówka' });
 
-    if (url.pathname === '/hello') return json(200, { app: 'JustLauncher', version: require('../../package.json').version, plugin: PLUGIN_ID });
+    if (url.pathname === '/hello') return json(200, { app: 'JustMinecraft', version: require('../../package.json').version, plugin: PLUGIN_ID });
     if (url.pathname === '/events' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
       res.write('retry: 3000\n\n');

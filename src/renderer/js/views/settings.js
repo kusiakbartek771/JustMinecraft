@@ -178,7 +178,7 @@ async function updates(body) {
   const off = on('update', () => { off(); if (body.isConnected && current === 'updates') rerender(); });
   const statusText = { idle: t('Nie sprawdzano'), checking: t('Sprawdzanie…'), latest: t('Masz najnowszą wersję ✓'), available: t('Dostępna wersja {v}', { v: st.version }), downloading: `${t('Pobieranie')} ${st.progress || 0}%`, ready: t('Gotowa do instalacji: {v}', { v: st.version }), error: `${t('Błąd')}: ${st.error}`, unsupported: t('Automatyczne aktualizacje działają w zainstalowanej wersji (AppImage / instalator / DMG)') }[st.status] || st.status;
   body.append(section(t('Aktualizacje'),
-    setting(t('Wersja'), `JustLauncher ${S.info.version}`, h('span.chip', { class: st.status === 'latest' ? 'ok' : '', text: statusText })),
+    setting(t('Wersja'), `JustMinecraft ${S.info.version}`, h('span.chip', { class: st.status === 'latest' ? 'ok' : '', text: statusText })),
     h('div.row', { style: { padding: '8px 0' } },
       btn(t('Sprawdź teraz'), async () => { await api('update:check').catch(toastError); setTimeout(rerender, 1500); }, { icon: 'refresh' }),
       ['available', 'downloading', 'ready'].includes(st.status) ? btn(t('Zaktualizuj jednym kliknięciem'), () => installUpdate(), { kind: 'primary', icon: 'download' }) : null),
@@ -200,7 +200,7 @@ function advanced(body) {
 function about(body) {
   body.append(h('div.card.card-pad', { style: { textAlign: 'center', padding: '34px' } },
     h('img', { src: '../../assets/icon.png', style: { width: '96px', height: '96px', borderRadius: '22px' } }),
-    h('h2', { style: { margin: '12px 0 4px' }, text: 'JustLauncher' }),
+    h('h2', { style: { margin: '12px 0 4px' }, text: 'JustMinecraft' }),
     h('p.muted', { text: `${t('Wersja')} ${S.info.version} · Electron ${S.info.electron} · ${S.info.platform}/${S.info.arch}` }),
     h('p', { style: { maxWidth: '520px', margin: '10px auto' }, text: t('Launcher Minecrafta do modów: Vanilla, Fabric, Quilt, Forge i NeoForge, zawartość z Modrinth, paczki z Google Drive i muzyka z JustMusic.') }),
     h('div.row.center', null,

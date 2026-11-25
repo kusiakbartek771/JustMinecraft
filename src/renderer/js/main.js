@@ -56,7 +56,7 @@ function wireEvents() {
   window.jl.on('tasks:remove', (id) => { S.tasks.delete(id); emit('tasks'); });
   window.jl.on('task:log', (p) => {
     const x = S.tasks.get(p.id);
-    if (x?.instanceId) { pushLog(x.instanceId, `[JustLauncher] ${p.line}`); emit('log', { instanceId: x.instanceId }); }
+    if (x?.instanceId) { pushLog(x.instanceId, `[JustMinecraft] ${p.line}`); emit('log', { instanceId: x.instanceId }); }
   });
   window.jl.on('game:log', (p) => { pushLog(p.instanceId, p.line); emit('log', p); });
   window.jl.on('game:state', (p) => {

@@ -1,4 +1,4 @@
-/* JustLauncher – style. Kolory i rozmiary pochodzą ze zmiennych ustawianych przez theme.js */
+/* JustMinecraft – style. Kolory i rozmiary pochodzą ze zmiennych ustawianych przez theme.js */
 :root {
   --bg: #0b0d14; --surface: #131722; --surface-2: #1a1f2e; --elevated: #222839; --text: #e8ebf4; --text-dim: #8d95ab;
   --border: rgba(255,255,255,.07); --accent: #7c5cff; --accent-rgb: 124, 92, 255; --accent-text: #fff;

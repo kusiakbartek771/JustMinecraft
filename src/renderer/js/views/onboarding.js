@@ -13,7 +13,7 @@ export function onboarding(done) {
       body.replaceChildren(h('div.steps', null, [0, 1, 2].map((i) => h(`i${i <= step ? '.on' : ''}`))));
       if (step === 0) {
         body.append(h('h1', { style: { margin: '0 0 6px' }, text: t('Cześć! 👋') }),
-          h('p.muted', { text: t('JustLauncher uruchomi każdą wersję Minecrafta z modami. Ustawmy kilka rzeczy – zajmie to chwilę.') }),
+          h('p.muted', { text: t('JustMinecraft uruchomi każdą wersję Minecrafta z modami. Ustawmy kilka rzeczy – zajmie to chwilę.') }),
           h('div.form', null, h('div.field', null, h('label.lbl', { text: t('Język') }), select(LANGS, S.settings.language, (v) => { saveSettings({ language: v }); setLang(v); draw(); }))),
           h('div.row', { style: { justifyContent: 'flex-end', marginTop: '20px' } }, btn(t('Dalej'), () => { step = 1; draw(); }, { kind: 'primary', icon: 'chevronRight' })));
       } else if (step === 1) {

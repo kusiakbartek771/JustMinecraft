@@ -16,7 +16,7 @@ registerView('home', (root) => {
       root.append(h('div.hero', null,
         h('div.hero-art', { style: { background: 'radial-gradient(100% 120% at 20% 0%, rgba(var(--accent-rgb), .55), transparent 60%), linear-gradient(135deg, var(--g1), var(--g2))' } }),
         blocks(),
-        h('h2', { text: t('Witaj w JustLauncher!') }),
+        h('h2', { text: t('Witaj w JustMinecraft!') }),
         h('p.muted', { style: { maxWidth: '560px', marginBottom: 0 }, text: t('Stwórz pierwszą instancję – wybierz wersję Minecrafta i loader (Vanilla, Fabric, Quilt, Forge albo NeoForge). Wszystko pobierze się samo, łącznie z Javą.') }),
         h('div.hero-actions', null,
           btn(t('Nowa instancja'), () => openCreate(), { kind: 'primary', icon: 'plus' }),

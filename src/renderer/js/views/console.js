@@ -13,7 +13,7 @@ export function pushLog(instanceId, line) {
 }
 
 function cls(line) {
-  if (/\[JustLauncher\]/.test(line)) return 'l-jl';
+  if (/\[JustMinecraft\]/.test(line)) return 'l-jl';
   if (/\/(ERROR|FATAL)\]|ERROR|Exception|^\s+at |Caused by/.test(line)) return 'l-error';
   if (/\/WARN\]|WARN/.test(line)) return 'l-warn';
   if (/\/DEBUG\]|\/TRACE\]/.test(line)) return 'l-debug';

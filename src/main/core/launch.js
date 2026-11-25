@@ -151,9 +151,9 @@ function buildArgs(p, o) {
     clientid: account.clientId || '0',
     user_type: account.type === 'msa' ? 'msa' : 'legacy',
     user_properties: '{}',
-    version_type: settings.game?.versionTypeLabel || 'JustLauncher',
+    version_type: settings.game?.versionTypeLabel || 'JustMinecraft',
     natives_directory: nativesDir,
-    launcher_name: 'JustLauncher',
+    launcher_name: 'JustMinecraft',
     launcher_version: PKG.version,
     classpath: cp.join(SEP),
     classpath_separator: SEP,
@@ -170,7 +170,7 @@ function buildArgs(p, o) {
   const preset = JVM_PRESETS[instance.jvmPreset || settings.game?.jvmPreset || 'balanced'] || JVM_PRESETS.balanced;
   jvm.push(...preset.args(javaMajor));
   jvm.push(...splitArgs(settings.game?.jvmArgs), ...splitArgs(instance.jvmArgs));
-  jvm.push('-Dminecraft.launcher.brand=JustLauncher', `-Dminecraft.launcher.version=${PKG.version}`);
+  jvm.push('-Dminecraft.launcher.brand=JustMinecraft', `-Dminecraft.launcher.version=${PKG.version}`);
   if (logging) jvm.push(logging.argument.replace('${path}', logging.file));
   if (version.arguments?.jvm) {
     jvm.push(...processArgs(version.arguments.jvm, vars, features));
@@ -250,12 +250,12 @@ async function launch(o, hooks = {}) {
   delete env.ELECTRON_RUN_AS_NODE; delete env.CHROME_DESKTOP;
 
   o.ctx?.onStatus?.('Uruchamianie gry');
-  const logFile = path.join(p.gameDir, 'logs', 'justlauncher-latest.log');
+  const logFile = path.join(p.gameDir, 'logs', 'justminecraft-latest.log');
   await fsp.mkdir(path.dirname(logFile), { recursive: true });
   const logStream = fs.createWriteStream(logFile);
   const startedAt = Date.now();
   const masked = args.map((a) => (o.account.accessToken && a === o.account.accessToken ? '••••••' : a));
-  logStream.write(`[JustLauncher] ${cmd} ${(wrapper.length ? [...wrapper.slice(1), p.javaExe, ...masked] : masked).join(' ')}\n\n`);
+  logStream.write(`[JustMinecraft] ${cmd} ${(wrapper.length ? [...wrapper.slice(1), p.javaExe, ...masked] : masked).join(' ')}\n\n`);
 
   const proc = spawn(cmd, cmdArgs, { cwd: p.gameDir, env, windowsHide: false, detached: false });
   const entry = { proc, startedAt, tail: [], instanceId: instance.id, versionId: p.versionId };

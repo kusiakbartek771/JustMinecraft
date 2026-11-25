@@ -7,7 +7,7 @@ const crypto = require('crypto');
 const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
 
-const UA = `JustLauncher/${require('../../../package.json').version} (+https://github.com/kusiakbartek771/JustLauncher)`;
+const UA = `JustMinecraft/${require('../../../package.json').version} (+https://github.com/kusiakbartek771/JustMinecraft)`;
 const cfg = { concurrency: 16, retries: 4, timeout: 30000 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

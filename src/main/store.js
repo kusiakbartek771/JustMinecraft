@@ -19,7 +19,7 @@ const DEFAULTS = () => ({
   },
   game: {
     memory: { min: 512, max: 4096, auto: true }, jvmPreset: 'balanced', jvmArgs: '', wrapper: '', gamemode: false, dedicatedGpu: false,
-    resolution: { width: 0, height: 0, fullscreen: false }, afterLaunch: 'minimize', showConsoleOnCrash: true, versionTypeLabel: 'JustLauncher',
+    resolution: { width: 0, height: 0, fullscreen: false }, afterLaunch: 'minimize', showConsoleOnCrash: true, versionTypeLabel: 'JustMinecraft',
   },
   java: { path: '' },
   downloads: { concurrency: 16, autoShaderLoader: true, autoDependencies: true, showSnapshots: false, verifyOnRepair: true },
@@ -50,6 +50,7 @@ function load() {
     try { raw = JSON.parse(fs.readFileSync(f, 'utf8')); break; } catch {}
   }
   data = merge(DEFAULTS(), raw || {});
+  if (data.game.versionTypeLabel === 'JustLauncher') data.game.versionTypeLabel = 'JustMinecraft'; // stara nazwa aplikacji
   return data;
 }
 
