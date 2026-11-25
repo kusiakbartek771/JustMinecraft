@@ -139,7 +139,7 @@ function drawAccount() {
   const a = currentAccount();
   slot.replaceChildren(h('div.account-chip', { onClick: () => openAccounts(), title: t('Konta') },
     avatar(a),
-    h('div.acc-meta', null, h('b', { text: a ? a.name : t('Dodaj konto') }), h('small', { text: a ? (a.type === 'msa' ? 'Microsoft' : t('Offline')) : t('Kliknij, aby się zalogować') })),
+    h('div.acc-meta', null, h('b', { text: a ? a.name : t('Dodaj konto') }), h('small', { text: a ? t('Offline') : t('Kliknij, aby dodać') })),
     h('span.acc-meta', { html: icon('chevronRight') })));
 }
 

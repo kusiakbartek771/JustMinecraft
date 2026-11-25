@@ -34,16 +34,9 @@ Pobierz z [Releases](https://github.com/kusiakbartek771/JustMinecraft/releases/l
 
 > Na Linuksie stare wersje (LWJGL 2, np. 1.12.2) potrzebują programu `xrandr` (Arch: `sudo pacman -S xorg-xrandr`, Ubuntu: `sudo apt install x11-xserver-utils`). Launcher sam o tym przypomni.
 
-## Logowanie Microsoft
+## Konta
 
-Microsoft wymaga, by każdy launcher miał **własną aplikację Azure zatwierdzoną przez Mojang**:
-
-1. [Azure Portal](https://portal.azure.com) → *App registrations* → *New registration* → konta: **Personal Microsoft accounts only**.
-2. *Authentication* → *Allow public client flows* = **Yes**.
-3. Skopiuj *Application (client) ID* i wypełnij formularz dostępu do API Minecrafta: <https://aka.ms/mce-reviewappid>.
-4. Po akceptacji wpisz ID w `package.json` → `justminecraft.msClientId` (dla wszystkich) albo w Ustawienia → Zaawansowane.
-
-Do tego czasu działają konta offline (singleplayer i serwery bez weryfikacji).
+Launcher używa kont offline – wystarczy wpisać nick. Działa singleplayer, LAN i serwery z `online-mode=false`.
 
 ## Paczki z Google Drive dla wszystkich
 
@@ -76,7 +69,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.1.0 && git push origin main v1.1.0`
+2. `git tag v1.1.1 && git push origin main v1.1.1`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura

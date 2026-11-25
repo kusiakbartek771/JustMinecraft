@@ -49,7 +49,7 @@ export function shortLoaderVersion(loader, v) {
   return v;
 }
 
-/** Avatar konta – twarz ze skórki (konto Microsoft) albo inicjał. */
+/** Avatar konta – inicjał (albo twarz ze skórki, jeśli konto ją ma). */
 export function avatar(acc, size = 34) {
   const el = h('div.avatar', { style: { width: `${size}px`, height: `${size}px` } });
   if (!acc) { el.textContent = '?'; return el; }

@@ -29,7 +29,7 @@ const DEFAULTS = () => ({
     volumeInGame: 0, port: 47851, showNowPlaying: true,
   },
   updates: { auto: true, channel: 'latest', checkOnStart: true },
-  advanced: { msClientId: '', devtools: false },
+  advanced: { devtools: false },
 });
 
 let data = null;

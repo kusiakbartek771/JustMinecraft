@@ -153,11 +153,9 @@ const handle = (ch, fn) => ipcMain.handle(ch, async (_e, ...args) => {
   }
 });
 
-const msClientId = () => S().advanced.msClientId || PKG.justminecraft?.msClientId || '';
-
 handle('app:info', () => ({
   version: PKG.version, platform: process.platform, arch: process.arch, totalMem: Math.floor(os.totalmem() / 1048576),
-  cpus: os.cpus().length, userData: app.getPath('userData'), dev: DEV, msConfigured: !!msClientId(), repo: PKG.justminecraft.repo,
+  cpus: os.cpus().length, userData: app.getPath('userData'), dev: DEV, repo: PKG.justminecraft.repo,
   issuesUrl: PKG.justminecraft.issuesUrl, electron: process.versions.electron, packaged: app.isPackaged,
 }));
 
@@ -514,30 +512,10 @@ handle('drive:sync', async (id) => {
 });
 
 // --- konta ---
-let msCtrl = null;
 handle('accounts:list', () => ({ accounts: accounts.list(), selected: S().selectedAccount }));
 handle('accounts:addOffline', (name) => { const a = accounts.addOffline(name); if (!S().selectedAccount) store.set({ selectedAccount: a.id }); return a; });
 handle('accounts:remove', (id) => { accounts.remove(id); if (S().selectedAccount === id) store.set({ selectedAccount: accounts.list()[0]?.id || null }); return true; });
 handle('accounts:select', (id) => { store.set({ selectedAccount: id }); return true; });
-handle('accounts:msStart', async () => {
-  const cid = msClientId();
-  const dc = await accounts.startDeviceCode(cid);
-  msCtrl?.abort();
-  msCtrl = new AbortController();
-  const ctrl = msCtrl;
-  (async () => {
-    try {
-      const tok = await accounts.pollDeviceCode(cid, dc.deviceCode, dc.interval, ctrl.signal);
-      const acc = await accounts.finishMicrosoft(cid, tok);
-      store.set({ selectedAccount: acc.id });
-      send('accounts:ms', { ok: true, account: acc });
-    } catch (e) {
-      if (!ctrl.signal.aborted) send('accounts:ms', { ok: false, error: friendlyError(e) });
-    }
-  })();
-  return { userCode: dc.userCode, verificationUri: dc.verificationUri, expiresIn: dc.expiresIn };
-});
-handle('accounts:msCancel', () => { msCtrl?.abort(); return true; });
 
 // --- Java ---
 handle('java:detect', () => java.detect());
@@ -580,7 +558,7 @@ async function launchInstance(id, o = {}) {
   const inst = await instances.get(id);
   if (launcher.running.has(id)) throw new Error(`${inst.name} już działa`);
   if ([...tasks.values()].some((t) => t.instanceId === id && t.state === 'running' && t.kind === 'launch')) throw new Error('Gra właśnie się uruchamia');
-  const account = await accounts.forLaunch(S().selectedAccount, msClientId());
+  const account = await accounts.forLaunch(S().selectedAccount);
   await drive.syncGlobalDatapacks(inst).catch(() => 0);
   store.set({ selectedInstance: id });
   const { promise } = startTask(`Uruchamianie: ${inst.name}`, async (ctx) => {

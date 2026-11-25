@@ -1,7 +1,7 @@
 {
   "name": "justminecraft",
   "productName": "JustMinecraft",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "JustMinecraft – launcher Minecrafta do modów: Vanilla, Fabric, Quilt, Forge i NeoForge, mody / resource packi / shadery / datapacki z Modrinth, paczki z Google Drive i integracja z JustMusic.",
   "main": "src/main/main.js",
   "author": "JustMinecraft contributors",
@@ -123,7 +123,6 @@
   "desktopName": "justminecraft.desktop",
   "justminecraft": {
     "repo": "kusiakbartek771/JustMinecraft",
-    "msClientId": "",
     "packsUrl": "https://raw.githubusercontent.com/kusiakbartek771/JustMinecraft/main/packs/packs.json",
     "issuesUrl": "https://github.com/kusiakbartek771/JustMinecraft/issues/new"
   },

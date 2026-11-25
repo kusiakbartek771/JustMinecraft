@@ -15,7 +15,7 @@ const listen = (ch) => (fn) => {
 contextBridge.exposeInMainWorld('jl', {
   invoke,
   on: (ch, fn) => {
-    const allowed = ['tasks:update', 'tasks:remove', 'task:log', 'game:log', 'game:state', 'instances:changed', 'toast', 'jm:state', 'jm:connection', 'update:status', 'accounts:ms', 'win:state'];
+    const allowed = ['tasks:update', 'tasks:remove', 'task:log', 'game:log', 'game:state', 'instances:changed', 'toast', 'jm:state', 'jm:connection', 'update:status', 'win:state'];
     if (!allowed.includes(ch)) throw new Error(`Nieznany kanał ${ch}`);
     return listen(ch)(fn);
   },

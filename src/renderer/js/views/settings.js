@@ -189,9 +189,7 @@ async function updates(body) {
 
 function advanced(body) {
   const a = S.settings.advanced;
-  body.append(section(t('Konto Microsoft'),
-    setting(t('Azure Client ID'), t('Potrzebny do logowania Microsoft. Utwórz aplikację w Azure (konta osobiste, „Allow public client flows”) i złóż wniosek o dostęp do API Minecrafta. Instrukcja w README.'), input(a.msClientId, (v) => saveSettings({ advanced: { msClientId: v.trim() } }), { width: '320px', placeholder: '00000000-0000-…' }))),
-  section(t('Diagnostyka'),
+  body.append(section(t('Diagnostyka'),
     setting(t('Narzędzia deweloperskie'), t('Konsola Chromium dla interfejsu launchera'), switchEl(a.devtools, (v) => saveSettings({ advanced: { devtools: v } }))),
     setting(t('Folder danych aplikacji'), S.info.userData, btn(t('Otwórz'), () => api('shell:showItem', S.info.userData), { small: true, icon: 'folder' })),
     setting(t('Zresetuj wszystkie ustawienia'), t('Instancje, konta i pobrane pliki zostaną'), btn(t('Resetuj'), async () => { if (await confirmDialog({ title: t('Zresetować ustawienia?'), text: t('Wszystkie opcje wrócą do domyślnych.'), danger: true, ok: t('Resetuj') })) { S.settings = await api('settings:reset'); applyAppearance(S.settings.appearance); rerender(); } }, { small: true, kind: 'danger' }))));

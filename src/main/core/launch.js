@@ -149,7 +149,7 @@ function buildArgs(p, o) {
     auth_session: account.accessToken ? `token:${account.accessToken}:${account.uuid.replace(/-/g, '')}` : '0',
     auth_xuid: account.xuid || '0',
     clientid: account.clientId || '0',
-    user_type: account.type === 'msa' ? 'msa' : 'legacy',
+    user_type: 'legacy',
     user_properties: '{}',
     version_type: settings.game?.versionTypeLabel || 'JustMinecraft',
     natives_directory: nativesDir,
