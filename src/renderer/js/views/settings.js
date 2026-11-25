@@ -1,5 +1,5 @@
 // Ustawienia: wygląd, gra i wydajność, Java, pobieranie, folder instalacji, aktualizacje, zaawansowane.
-import { S, api, saveSettings, emit } from '../state.js';
+import { S, api, saveSettings, emit, on } from '../state.js';
 import { h, btn, select, switchEl, slider, setting, section, segmented, input, toast, toastError, confirmDialog, fmtBytes, spinner } from '../ui.js';
 import { icon } from '../icons.js';
 import { t, LANGS, setLang } from '../i18n.js';
@@ -173,7 +173,9 @@ async function storage(body) {
 
 async function updates(body) {
   const u = S.settings.updates;
-  const st = await api('update:get').catch(() => ({ status: 'idle' }));
+  const st = S.update || (await api('update:get').catch(() => ({ status: 'idle' })));
+  // odśwież kartę, gdy zmieni się stan aktualizacji (sprawdzanie / pobieranie / gotowa)
+  const off = on('update', () => { off(); if (body.isConnected && current === 'updates') rerender(); });
   const statusText = { idle: t('Nie sprawdzano'), checking: t('Sprawdzanie…'), latest: t('Masz najnowszą wersję ✓'), available: t('Dostępna wersja {v}', { v: st.version }), downloading: `${t('Pobieranie')} ${st.progress || 0}%`, ready: t('Gotowa do instalacji: {v}', { v: st.version }), error: `${t('Błąd')}: ${st.error}`, unsupported: t('Automatyczne aktualizacje działają w zainstalowanej wersji (AppImage / instalator / DMG)') }[st.status] || st.status;
   body.append(section(t('Aktualizacje'),
     setting(t('Wersja'), `JustLauncher ${S.info.version}`, h('span.chip', { class: st.status === 'latest' ? 'ok' : '', text: statusText })),
