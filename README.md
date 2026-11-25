@@ -69,7 +69,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.1.1 && git push origin main v1.1.1`
+2. `git tag v1.1.2 && git push origin main v1.1.2`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura
