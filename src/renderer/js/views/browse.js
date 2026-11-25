@@ -1,6 +1,6 @@
-// Odkrywaj: wyszukiwarka Modrinth (mody, modpacki, resource packi, shadery, datapacki) z instalacją jednym kliknięciem.
+// Odkrywaj: wyszukiwarka Modrinth i CurseForge (mody, modpacki, resource packi, shadery, datapacki) z instalacją jednym kliknięciem.
 import { S, api, on, selectedInstance, refreshInstances } from '../state.js';
-import { h, btn, empty, spinner, select, toast, toastError, fmtNum, fmtAgo, debounce } from '../ui.js';
+import { h, btn, empty, spinner, select, segmented, toast, toastError, fmtNum, fmtAgo, debounce } from '../ui.js';
 import { icon } from '../icons.js';
 import { t } from '../i18n.js';
 import { navigate, registerView } from '../router.js';
@@ -26,10 +26,12 @@ const CAT_PL = {
 const HIDE_CATS = new Set(['fabric', 'forge', 'quilt', 'neoforge', 'iris', 'optifine', 'canvas', 'vanilla', 'minecraft', 'datapack', 'babric', 'bukkit', 'paper', 'spigot', 'purpur', 'folia', 'sponge', 'velocity', 'bungeecord', 'waterfall', 'liteloader', 'modloader', 'rift', 'legacy-fabric', 'ornithe', 'nilloader', 'java-agent', 'bta-babric', 'risugami', 'geyser']);
 export const catLabel = (c) => t(CAT_PL[c] || c);
 
-const st = { q: '', type: 'mod', sort: 'relevance', cats: [], page: 0, instanceId: null, anyVersion: false };
+const st = { q: '', type: 'mod', sort: 'relevance', cats: [], page: 0, instanceId: null, anyVersion: false, source: 'modrinth' };
+export const SOURCES = [['modrinth', 'Modrinth'], ['curseforge', 'CurseForge']];
 
 registerView('browse', (root, param = {}) => {
   if (param.type) st.type = param.type;
+  if (param.source) st.source = param.source;
   if (param.instanceId) st.instanceId = param.instanceId;
   if (!S.instances.some((i) => i.id === st.instanceId)) st.instanceId = selectedInstance()?.id || null;
   if (param.type || param.instanceId) { st.page = 0; st.cats = []; }
@@ -45,9 +47,11 @@ registerView('browse', (root, param = {}) => {
   layout.append(filters, h('div', null, results, pager));
   root.append(head, targetBar, layout);
 
-  const searchIn = h('input.input', { placeholder: t('Szukaj na Modrinth…'), value: st.q, onInput: debounce((e) => { st.q = e.target.value; st.page = 0; load(); }, 300) });
+  const searchIn = h('input.input', { placeholder: st.source === 'curseforge' ? t('Szukaj na CurseForge…') : t('Szukaj na Modrinth…'), value: st.q, onInput: debounce((e) => { st.q = e.target.value; st.page = 0; load(); }, 300) });
   function drawHead() {
-    head.replaceChildren(h('h1', { text: t('Odkrywaj') }), h('div.spacer'),
+    head.replaceChildren(h('h1', { text: t('Odkrywaj') }),
+      segmented(SOURCES, st.source, (v) => { st.source = v; st.page = 0; st.cats = []; searchIn.placeholder = v === 'curseforge' ? t('Szukaj na CurseForge…') : t('Szukaj na Modrinth…'); drawFilters(); load(); }),
+      h('div.spacer'),
       h('div.search-box', { style: { width: 'min(420px, 50vw)' } }, h('span', { html: icon('search') }), searchIn),
       select([['relevance', t('Trafność')], ['downloads', t('Pobrania')], ['follows', t('Obserwujący')], ['newest', t('Najnowsze')], ['updated', t('Aktualizowane')]], st.sort, (v) => { st.sort = v; st.page = 0; load(); }));
   }
@@ -79,15 +83,17 @@ registerView('browse', (root, param = {}) => {
   function drawFilters() {
     filters.replaceChildren();
     const chips = h('div.filter-chips');
-    for (const c of CATS[st.type] || []) {
+    for (const c of st.source === 'modrinth' ? CATS[st.type] || [] : []) {
       chips.append(h(`button.chip.clickable${st.cats.includes(c) ? '.active' : ''}`, { onClick: () => { st.cats = st.cats.includes(c) ? st.cats.filter((x) => x !== c) : [...st.cats, c]; st.page = 0; drawFilters(); load(); } }, catLabel(c)));
     }
-    filters.append(h('div', null, h('h4', { text: t('Kategorie') }), chips));
+    if (st.source === 'modrinth') filters.append(h('div', null, h('h4', { text: t('Kategorie') }), chips));
     if (st.type !== 'modpack') {
       const sw = h('label.row.small', { style: { cursor: 'pointer' } }, h('input', { type: 'checkbox', checked: st.anyVersion, onChange: (e) => { st.anyVersion = e.target.checked; st.page = 0; drawTarget(); load(); } }), t('Pokaż też niezgodne wersje'));
       filters.append(h('div', null, h('h4', { text: t('Zgodność') }), sw));
     }
-    filters.append(h('div.card.card-pad.small.muted', null, h('div', { html: `${icon('info')}` }), t('Zawartość pochodzi z Modrinth – otwartej platformy modów. Wymagane zależności instalują się automatycznie.')));
+    filters.append(h('div.card.card-pad.small.muted', null, h('div', { html: `${icon('info')}` }), st.source === 'curseforge'
+      ? t('Zawartość pochodzi z CurseForge. Wymagane zależności instalują się automatycznie. Niektórzy autorzy nie pozwalają pobierać plików w launcherach – wtedy launcher poda link do strony.')
+      : t('Zawartość pochodzi z Modrinth – otwartej platformy modów. Wymagane zależności instalują się automatycznie.')));
   }
 
   async function loadInstalled() {
@@ -96,7 +102,7 @@ registerView('browse', (root, param = {}) => {
     if (!inst || st.type === 'modpack') return;
     try {
       const list = await api('content:list', inst.id, st.type, st.type === 'datapack' ? '*' : undefined);
-      for (const i of list) if (i.projectId) installed.add(i.projectId);
+      for (const i of list) if (i.projectId) installed.add(String(i.projectId));
     } catch {}
   }
 
@@ -107,7 +113,7 @@ registerView('browse', (root, param = {}) => {
     pager.replaceChildren();
     const inst = target();
     try {
-      const r = await api('modrinth:search', {
+      const r = await api(st.source === 'curseforge' ? 'cf:search' : 'modrinth:search', {
         query: st.q, type: st.type, sort: st.sort, offset: st.page * 20, limit: 20, categories: st.cats,
         mc: st.type !== 'modpack' && !st.anyVersion ? inst?.mc : undefined,
         loader: st.type === 'mod' && !st.anyVersion ? inst?.loader : undefined,
@@ -123,13 +129,22 @@ registerView('browse', (root, param = {}) => {
           btn('', () => { st.page++; load(); document.getElementById('view').scrollTop = 0; }, { icon: 'chevronRight', disabled: st.page >= pages - 1 }));
       }
     } catch (e) {
-      if (my === req) results.replaceChildren(empty('wifiOff', t('Nie udało się połączyć z Modrinth'), e.message, btn(t('Spróbuj ponownie'), load, { icon: 'refresh' })));
+      if (my !== req) return;
+      if (e.code === 'CF_NO_KEY' || e.code === 'CF_BAD_KEY') {
+        results.replaceChildren(empty('key', e.code === 'CF_NO_KEY' ? t('CurseForge wymaga klucza API') : t('Klucz CurseForge nie działa'),
+          t('Załóż darmowe konto na console.curseforge.com, wygeneruj klucz API i wklej go w Ustawienia → Pobieranie. Modrinth działa bez klucza.'),
+          h('div.row', { style: { justifyContent: 'center' } },
+            btn(t('Otwórz console.curseforge.com'), () => api('shell:open', 'https://console.curseforge.com/'), { icon: 'external' }),
+            btn(t('Ustawienia'), () => navigate('settings', { section: 'downloads' }), { kind: 'primary', icon: 'settings' }))));
+        return;
+      }
+      results.replaceChildren(empty('wifiOff', st.source === 'curseforge' ? t('Nie udało się połączyć z CurseForge') : t('Nie udało się połączyć z Modrinth'), e.message, btn(t('Spróbuj ponownie'), load, { icon: 'refresh' })));
     }
   }
 
   function resultCard(p) {
     const inst = target();
-    const isInst = installed.has(p.id);
+    const isInst = installed.has(String(p.id));
     const action = st.type === 'modpack'
       ? btn(t('Zainstaluj'), async (e) => { e.stopPropagation(); await installModpack(p); }, { kind: 'primary', icon: 'download', small: true })
       : btn(isInst ? t('Zainstalowane') : t('Zainstaluj'), async (e) => {
@@ -139,17 +154,17 @@ registerView('browse', (root, param = {}) => {
         b.disabled = true;
         let world;
         if (st.type === 'datapack') { world = await pickWorld(inst); if (!world) { b.disabled = false; return; } }
-        const ok = await installProject({ instance: inst, project: p, type: st.type, world });
+        const ok = await installProject({ instance: inst, project: p, type: st.type, world, source: st.source });
         if (ok) { installed.add(p.id); b.replaceChildren(h('span', { text: t('Zainstalowane') })); b.className = 'btn small'; } else b.disabled = false;
       }, { kind: isInst ? '' : 'primary', icon: isInst ? 'check' : 'download', small: true, disabled: isInst || !inst });
-    return h('div.card.result', { onClick: () => navigate('project', { id: p.slug || p.id, type: st.type, instanceId: st.instanceId }) },
+    return h('div.card.result', { onClick: () => navigate('project', { id: st.source === 'curseforge' ? p.id : p.slug || p.id, type: st.type, instanceId: st.instanceId, source: st.source }) },
       h('img.r-icon', { src: p.icon || '', loading: 'lazy', alt: '', onError: (e) => { e.target.style.visibility = 'hidden'; } }),
       h('div.r-main', null,
         h('h3', null, p.title, ' ', h('small', { text: `${t('od')} ${p.author}` })),
         h('p', { text: p.description }),
         h('div.row', { style: { gap: '6px' } }, (p.categories || []).filter((c) => !HIDE_CATS.has(c)).slice(0, 4).map((c) => h('span.chip', { text: catLabel(c) })))),
       h('div.r-side', null,
-        h('div.r-stats', null, h('span', { title: t('Pobrania') }, h('span', { html: icon('download') }), fmtNum(p.downloads)), h('span', { title: t('Obserwujący') }, h('span', { html: icon('heart') }), fmtNum(p.follows))),
+        h('div.r-stats', null, h('span', { title: t('Pobrania') }, h('span', { html: icon('download') }), fmtNum(p.downloads)), st.source === 'curseforge' ? null : h('span', { title: t('Obserwujący') }, h('span', { html: icon('heart') }), fmtNum(p.follows))),
         h('span.muted.small', { text: `${t('aktualizacja')}: ${fmtAgo(new Date(p.updated).getTime())}` }),
         action));
   }
@@ -163,7 +178,7 @@ registerView('browse', (root, param = {}) => {
 export async function installModpack(p) {
   try {
     toast(t('Pobieram modpack „{n}”…', { n: p.title }), { icon: 'download' });
-    const inst = await api('modrinth:installModpack', { projectId: p.id, title: p.title, icon: p.icon, versionId: p.versionId });
+    const inst = await api(p.platform === 'curseforge' ? 'cf:installModpack' : 'modrinth:installModpack', { projectId: p.id, title: p.title, icon: p.icon, versionId: p.versionId });
     await refreshInstances();
     navigate('instance', { id: inst.id });
   } catch (e) { toastError(e); }

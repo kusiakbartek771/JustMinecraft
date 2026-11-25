@@ -30,6 +30,12 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libarchive-tools
       - run: npm ci
+      - name: Klucz CurseForge (sekret CURSEFORGE_API_KEY, opcjonalny)
+        shell: bash
+        env:
+          CF_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+        run: |
+          if [ -n "$CF_KEY" ]; then node -e "require('fs').writeFileSync('src/main/cf-key.json', JSON.stringify({ key: process.env.CF_KEY }))"; fi
       - name: Build & publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

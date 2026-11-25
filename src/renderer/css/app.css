@@ -456,3 +456,70 @@ input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .emoji-grid button { font-size: 20px; height: 36px; border: 0; background: transparent; border-radius: 6px; cursor: pointer; }
 .emoji-grid button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
 .code-box { font-size: 30px; font-weight: 800; letter-spacing: .25em; text-align: center; padding: 16px; border-radius: var(--radius); background: rgba(var(--accent-rgb), .12); border: 1px dashed rgba(var(--accent-rgb), .5); user-select: text; font-family: ui-monospace, monospace; }
+
+/* =====================================================================
+   Animacje z JustMusic (wyłącza je przełącznik „Animacje” i systemowe ograniczenie ruchu)
+   ===================================================================== */
+:root { --ease-out: cubic-bezier(.22, 1, .36, 1); --ease-spring: cubic-bezier(.34, 1.56, .64, 1); }
+
+/* przejście między widokami: nowy widok wjeżdża, przy „wstecz” z drugiej strony */
+@keyframes viewin { from { opacity: 0; transform: translateY(10px); } }
+@keyframes viewback { from { opacity: 0; transform: translateX(-14px); } }
+@keyframes risein { from { opacity: 0; transform: translateY(14px) scale(.985); } }
+:root[data-anim="on"] #view.enter > * { animation: viewin 280ms var(--ease-out) both; }
+:root[data-anim="on"] #view.enter.back > * { animation-name: viewback; }
+
+/* kafelki i karty wchodzą kaskadowo */
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item) { animation: risein 380ms var(--ease-out) both; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(2) { animation-delay: 35ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(3) { animation-delay: 70ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(4) { animation-delay: 105ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(5) { animation-delay: 140ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(6) { animation-delay: 175ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(7) { animation-delay: 210ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(8) { animation-delay: 245ms; }
+:root[data-anim="on"] #view.enter :is(.inst-card, .qa, .result, .pack, .theme-tile, .settings-card, .inst-row, .content-item):nth-child(n+9) { animation-delay: 280ms; }
+
+/* karty unoszą się po najechaniu, okładka lekko się powiększa */
+.inst-card { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color .2s; }
+.inst-card .inst-cover { transition: transform 300ms var(--ease-out); }
+.inst-card:hover .inst-cover { transform: scale(1.025); }
+.result, .pack { transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), border-color .15s, background .15s; }
+.result:hover, .pack:hover { transform: translateY(-2px); }
+.qa { transition: transform 200ms var(--ease-out), background .15s, border-color .15s; }
+:is(.inst-card, .qa, .result, .pack, .theme-tile):active { transform: scale(.98); }
+
+/* przyciski: sprężyste kliknięcie */
+.icon-btn, .btn { transition: background .15s, color .15s, border-color .15s, transform 180ms var(--ease-spring); }
+.icon-btn:active { transform: scale(.86); }
+.btn:active { transform: scale(.95); }
+.inst-card .quick-play { transition: opacity .2s, transform 220ms var(--ease-spring); }
+.inst-card .quick-play:active { transform: scale(.9); }
+
+/* menu boczne: wskaźnik aktywnej pozycji wyrasta, ikony podskakują */
+@keyframes navbar { from { transform: scaleY(0); } }
+:root[data-anim="on"] .nav-item.active::before { animation: navbar 260ms var(--ease-spring); }
+.nav-item .i { transition: transform 200ms var(--ease-spring); }
+.nav-item:hover .i { transform: scale(1.12); }
+
+/* zmiana utworu z JustMusic */
+@keyframes npcover { from { opacity: 0; transform: scale(.82) rotate(-4deg); } }
+@keyframes nptext { from { opacity: 0; transform: translateX(-10px); } }
+:root[data-anim="on"] .np-change :is(.np-art, .jm-art) { animation: npcover 420ms var(--ease-spring) both; }
+:root[data-anim="on"] .np-change :is(.np-meta, .jm-art + .grow) { animation: nptext 360ms var(--ease-out) 60ms both; }
+@keyframes iconswap { 0% { transform: scale(.4) rotate(-30deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+:root[data-anim="on"] .icon-swap svg { animation: iconswap 260ms var(--ease-spring); }
+
+/* menu, okna i powiadomienia: odrobina sprężystości */
+@keyframes popspring { from { opacity: 0; transform: scale(.94) translateY(-6px); } }
+:root[data-anim="on"] .ctx-menu, :root[data-anim="on"] .tasks-pop { animation: popspring 180ms var(--ease-spring); }
+.modal { transition: transform 240ms var(--ease-spring); }
+.toast { transition: opacity .2s, transform 320ms var(--ease-spring); }
+.theme-tile { transition: transform 200ms var(--ease-spring), border-color .15s; }
+.theme-tile:hover { transform: translateY(-2px); }
+.swatch { transition: transform 200ms var(--ease-spring); }
+.swatch:hover { transform: scale(1.15); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root *, :root *::before, :root *::after { animation: none !important; transition: none !important; }
+}

@@ -148,7 +148,11 @@ function downloads(body) {
     setting(t('Iris/Oculus razem z shaderami'), t('Shadery wymagają moda – zainstaluje się automatycznie'), switchEl(d.autoShaderLoader, (v) => saveSettings({ downloads: { autoShaderLoader: v } }))),
     setting(t('Pokazuj snapshoty'), t('Wersje testowe Minecrafta na listach wersji'), switchEl(d.showSnapshots, (v) => saveSettings({ downloads: { showSnapshots: v } }))),
     setting(t('Pełna weryfikacja przy naprawie'), t('Liczy sumy SHA1 wszystkich plików (wolniej, dokładniej)'), switchEl(d.verifyOnRepair, (v) => saveSettings({ downloads: { verifyOnRepair: v } })))),
-  section('Google Drive',
+  section('CurseForge',
+    setting(t('Klucz API CurseForge'), t('Potrzebny do wyszukiwania i pobierania z CurseForge. Za darmo: console.curseforge.com → API keys. Modrinth działa bez klucza.'),
+      input(S.settings.curseforge?.apiKey || '', (v) => saveSettings({ curseforge: { apiKey: v.trim() } }), { width: '300px', placeholder: '$2a$10$…', type: 'password' }),
+      btn(t('Zdobądź klucz'), () => api('shell:open', 'https://console.curseforge.com/'), { small: true, kind: 'ghost', icon: 'external' }))),
+    section('Google Drive',
     setting(t('Klucz API Google (opcjonalnie)'), t('Bez klucza import działa dla publicznych folderów. Klucz z Google Cloud Console (Drive API) daje stabilniejsze listowanie dużych folderów.'), input(S.settings.drive.apiKey, (v) => saveSettings({ drive: { apiKey: v.trim() } }), { width: '300px', placeholder: 'AIza…' }))));
 }
 

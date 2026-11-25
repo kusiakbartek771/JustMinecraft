@@ -1,4 +1,4 @@
-// Strona projektu Modrinth: opis, galeria, wersje i instalacja.
+// Strona projektu Modrinth / CurseForge: opis, galeria, wersje i instalacja.
 import { S, api, selectedInstance } from '../state.js';
 import { h, btn, empty, spinner, select, toast, fmtNum, fmtAgo, modal, iconBtn } from '../ui.js';
 import { icon } from '../icons.js';
@@ -7,12 +7,13 @@ import { registerView, back } from '../router.js';
 import { LOADER_NAMES } from '../theme.js';
 import { installProject, pickWorld } from '../actions.js';
 import { catLabel, installModpack } from './browse.js';
-import { renderMarkdown } from '../markdown.js';
+import { renderMarkdown, renderHtml } from '../markdown.js';
 
 registerView('project', async (root, param) => {
   root.append(spinner());
   let p;
-  try { p = await api('modrinth:project', param.id); } catch (e) { root.replaceChildren(empty('alert', t('Nie udało się wczytać projektu'), e.message, btn(t('Wróć'), back))); return; }
+  const cf = param.source === 'curseforge';
+  try { p = await api(cf ? 'cf:project' : 'modrinth:project', param.id); } catch (e) { root.replaceChildren(empty('alert', t('Nie udało się wczytać projektu'), e.message, btn(t('Wróć'), back))); return; }
   const type = p.type === 'mod' && param.type === 'datapack' ? 'datapack' : p.type;
   let instanceId = param.instanceId || selectedInstance()?.id;
   const inst = () => S.instances.find((i) => i.id === instanceId);
@@ -35,7 +36,7 @@ registerView('project', async (root, param) => {
         h('p.muted', { style: { margin: '0 0 8px' }, text: p.description }),
         h('div.row', { style: { gap: '6px' } },
           h('span.chip', null, h('span', { html: icon('download') }), fmtNum(p.downloads)),
-          h('span.chip', null, h('span', { html: icon('heart') }), fmtNum(p.followers)),
+          cf ? h('span.chip', { text: 'CurseForge' }) : h('span.chip', null, h('span', { html: icon('heart') }), fmtNum(p.followers)),
           h('span.chip', null, h('span', { html: icon('clock') }), fmtAgo(new Date(p.updated).getTime())),
           ...(p.categories || []).slice(0, 5).map((c) => h('span.chip', { text: catLabel(c) })),
           p.license ? h('span.chip', { text: p.license }) : null)),
@@ -43,7 +44,7 @@ registerView('project', async (root, param) => {
         type === 'modpack' ? btn(t('Zainstaluj modpack'), () => installModpack(p), { kind: 'primary', icon: 'download' }) : btn(t('Zainstaluj'), () => install(), { kind: 'primary', icon: 'download', disabled: !inst() }),
         target,
         h('div.row', null,
-          btn('Modrinth', () => api('shell:open', `https://modrinth.com/${p.type}/${p.slug}`), { small: true, kind: 'ghost', icon: 'external' }),
+          cf ? btn('CurseForge', () => api('shell:open', p.website), { small: true, kind: 'ghost', icon: 'external' }) : btn('Modrinth', () => api('shell:open', `https://modrinth.com/${p.type}/${p.slug}`), { small: true, kind: 'ghost', icon: 'external' }),
           p.source ? btn(t('Kod'), () => api('shell:open', p.source), { small: true, kind: 'ghost', icon: 'github' }) : null,
           p.wiki ? btn('Wiki', () => api('shell:open', p.wiki), { small: true, kind: 'ghost', icon: 'info' }) : null)));
   }
@@ -53,7 +54,7 @@ registerView('project', async (root, param) => {
     if (!i) { toast(t('Wybierz instancję')); return; }
     let world;
     if (type === 'datapack') { world = await pickWorld(i); if (!world) return; }
-    await installProject({ instance: i, project: p, type, versionId, world });
+    await installProject({ instance: i, project: p, type, versionId, world, source: cf ? 'curseforge' : 'modrinth' });
   }
 
   function drawTabs() {
@@ -67,7 +68,7 @@ registerView('project', async (root, param) => {
     body.replaceChildren();
     if (tab === 'desc') {
       const d = h('div.card.card-pad.project-body');
-      d.append(renderMarkdown(p.body || p.description));
+      d.append(cf ? renderHtml(p.html || p.description) : renderMarkdown(p.body || p.description));
       d.addEventListener('click', (e) => { const a = e.target.closest('a'); if (a?.href && /^https?:/.test(a.href)) { e.preventDefault(); api('shell:open', a.href); } });
       body.append(d);
     } else if (tab === 'gallery') {
@@ -80,7 +81,7 @@ registerView('project', async (root, param) => {
       const draw = async () => {
         body.replaceChildren(spinner());
         try {
-          const list = await api('modrinth:versions', p.id, all || !i || type === 'modpack' ? {} : { mc: i.mc, loader: i.loader, type });
+          const list = await api(cf ? 'cf:versions' : 'modrinth:versions', p.id, all || !i || type === 'modpack' ? {} : { mc: i.mc, loader: i.loader, type });
           body.replaceChildren(h('div.row', { style: { marginBottom: '10px' } },
             type !== 'modpack' && i ? h('label.row.small', { style: { cursor: 'pointer' } }, h('input', { type: 'checkbox', checked: all, onChange: (e) => { all = e.target.checked; draw(); } }), t('Pokaż wszystkie wersje (także niezgodne z {n})', { n: i.name })) : null));
           if (!list.length) { body.append(empty('alert', t('Brak zgodnych wersji'), t('Ten projekt nie ma wersji dla Minecrafta {v} z tym loaderem.', { v: i?.mc }))); return; }
@@ -90,7 +91,8 @@ registerView('project', async (root, param) => {
               h('div', null, h('b', { text: v.name || v.number }), h('div.muted.small', { text: v.number })),
               h('div.small', null, h('span.chip', { class: v.type === 'release' ? 'ok' : 'warn', text: v.type }), ' ', h('span.muted', { text: v.loaders.map((l) => LOADER_NAMES[l] || l).join(', ') })),
               h('div.small.muted.ellipsis', { text: v.gameVersions.slice(-4).join(', ') }),
-              type === 'modpack' ? btn(t('Zainstaluj'), () => installModpack({ ...p, versionId: v.id }), { small: true, icon: 'download' }) : btn(t('Zainstaluj'), () => install(v.id), { small: true, icon: 'download', disabled: !i })));
+              v.blocked ? btn(t('Pobierz ze strony'), () => api('shell:open', `${p.website}/files/${v.id}`), { small: true, icon: 'external', kind: 'ghost' })
+                : type === 'modpack' ? btn(t('Zainstaluj'), () => installModpack({ ...p, versionId: v.id }), { small: true, icon: 'download' }) : btn(t('Zainstaluj'), () => install(v.id), { small: true, icon: 'download', disabled: !i })));
           }
           body.replaceChildren(body.firstChild, card);
         } catch (e) { body.replaceChildren(empty('alert', e.message, '')); }

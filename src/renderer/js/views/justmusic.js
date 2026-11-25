@@ -38,13 +38,18 @@ registerView('justmusic', (root) => {
     status.append(steps);
   }
 
+  let lastKey = null, lastPlaying = null;
   function drawPlayer() {
     player.replaceChildren();
     const s = S.jm.state;
     if (!S.jm.connected || !s) return;
     const tr = s.track;
+    const key = `${tr?.title}|${tr?.artist}`;
+    const changed = lastKey !== null && key !== lastKey;
+    const swapped = lastPlaying !== null && lastPlaying !== !!s.playing;
+    lastKey = key; lastPlaying = !!s.playing;
     const pct = s.duration ? ((s.time || 0) / s.duration) * 100 : 0;
-    player.append(h('div.card.jm-hero', { style: { marginTop: '16px' } },
+    player.append(h(`div.card.jm-hero${changed ? '.np-change' : ''}`, { style: { marginTop: '16px' } },
       h('div.jm-art', { style: tr?.thumb ? { backgroundImage: `url("${tr.thumb}")` } : null, html: tr?.thumb ? '' : icon('music') }),
       h('div.grow', null,
         h('div.muted.small', { text: s.playing ? t('Teraz gra') : t('Wstrzymano') }),
@@ -54,7 +59,7 @@ registerView('justmusic', (root) => {
         h('div.jm-controls', null,
           iconBtn('shuffle', t('Losowo'), () => api('jm:cmd', 'shuffle').catch(toastError)),
           iconBtn('prev', t('Poprzedni'), () => api('jm:cmd', 'prev').catch(toastError)),
-          h('button.icon-btn.big', { title: t('Graj/Pauza'), html: icon(s.playing ? 'pause' : 'play'), onClick: () => api('jm:cmd', 'toggle').catch(toastError) }),
+          h(`button.icon-btn.big${swapped ? '.icon-swap' : ''}`, { title: t('Graj/Pauza'), html: icon(s.playing ? 'pause' : 'play'), onClick: () => api('jm:cmd', 'toggle').catch(toastError) }),
           iconBtn('next', t('Następny'), () => api('jm:cmd', 'next').catch(toastError)),
           h('div.spacer'),
           h('span', { html: icon('volume') }),

@@ -24,6 +24,7 @@ const DEFAULTS = () => ({
   java: { path: '' },
   downloads: { concurrency: 16, autoShaderLoader: true, autoDependencies: true, showSnapshots: false, verifyOnRepair: true },
   drive: { apiKey: '' },
+  curseforge: { apiKey: '' },
   justmusic: {
     enabled: true, path: '', autostart: false, onGameStart: 'resume', playlistId: '', playlistName: '', onGameExit: 'pause',
     volumeInGame: 0, port: 47851, showNowPlaying: true,

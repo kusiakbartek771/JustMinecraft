@@ -115,7 +115,7 @@ export function openCreate(preset = {}) {
       h('div.row', { style: { justifyContent: 'space-between', marginTop: '6px' } },
         h('div.row', null,
           btn(t('Importuj folder'), importFolder, { icon: 'folder', kind: 'ghost', title: t('Skopiuj mody, światy i ustawienia z .minecraft albo innego launchera') }),
-          btn(t('Importuj .mrpack'), importPack, { icon: 'upload', kind: 'ghost' })),
+          btn(t('Importuj modpack (.mrpack / .zip)'), importPack, { icon: 'upload', kind: 'ghost' })),
         btn(t('Utwórz i zainstaluj'), create, { kind: 'primary', icon: 'check' }))));
     drawPreview(); drawVersions(); drawLoaders(); drawLoaderVersions();
     setTimeout(() => nameIn.focus(), 60);

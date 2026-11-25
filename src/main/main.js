@@ -15,6 +15,7 @@ const java = require('./core/java');
 const { Instances } = require('./instances');
 const content = require('./content');
 const modrinth = require('./modrinth');
+const curseforge = require('./curseforge');
 const drive = require('./drive');
 const accounts = require('./accounts');
 const jm = require('./justmusic');
@@ -149,7 +150,7 @@ function createWindow() {
 const handle = (ch, fn) => ipcMain.handle(ch, async (_e, ...args) => {
   try { return { ok: true, data: await fn(...args) }; } catch (e) {
     console.error(`[ipc ${ch}]`, e);
-    return { ok: false, error: friendlyError(e), code: e.code };
+    return { ok: false, error: friendlyError(e), code: e.code, url: e.url };
   }
 });
 
@@ -380,13 +381,24 @@ handle('content:addFiles', async (id, files, type, world) => {
 
 // --- Modrinth ---
 handle('modrinth:search', (o) => modrinth.search(o));
+// --- CurseForge ---
+curseforge.configure({ getKey: () => S().curseforge?.apiKey || '' });
+handle('cf:status', () => ({ hasKey: curseforge.hasKey() }));
+handle('cf:search', (o) => curseforge.search(o));
+handle('cf:project', (id) => curseforge.project(id));
+handle('cf:versions', (id, o) => curseforge.versions(id, o));
+handle('cf:installModpack', async (o) => {
+  const { file } = await curseforge.downloadPackVersion(o.projectId, o.versionId, mc.dirs(dataDir()).cache);
+  return installCfPackFile(file, { name: o.title, icon: o.icon, source: { type: 'curseforge', projectId: o.projectId, versionId: o.versionId || null } });
+});
 handle('modrinth:project', (id) => modrinth.project(id));
 handle('modrinth:versions', (id, o) => modrinth.versions(id, o));
 handle('modrinth:install', async (o) => {
   const inst = await instances.get(o.instanceId);
   const { promise } = startTask(`${o.title || 'Instalacja'} → ${inst.name}`, async (ctx) => {
     const warnings = [];
-    const installed = await modrinth.install({ inst, projectId: o.projectId, versionId: o.versionId, type: o.type, world: o.world, deps: S().downloads.autoDependencies, onStatus: ctx.onStatus, signal: ctx.signal, onWarn: (w) => warnings.push(w) });
+    const src = o.source === 'curseforge' ? curseforge : modrinth;
+    const installed = await src.install({ inst, projectId: o.projectId, versionId: o.versionId, type: o.type, world: o.world, deps: S().downloads.autoDependencies, onStatus: ctx.onStatus, signal: ctx.signal, onWarn: (w) => warnings.push(w) });
     // shadery potrzebują Iris/Oculus
     if (o.type === 'shader' && S().downloads.autoShaderLoader && inst.loader !== 'vanilla') {
       const idx = await content.loadIndex(inst);
@@ -453,12 +465,33 @@ handle('modrinth:installModpack', async (o) => {
   const { file } = await modrinth.downloadPackVersion(versionId, mc.dirs(dataDir()).cache);
   return installMrpackFile(file, { name: o.title, icon: o.icon, source: { type: 'modrinth', projectId: o.projectId, versionId } });
 });
+/** Modpack CurseForge (.zip z manifest.json) → nowa instancja. */
+async function installCfPackFile(file, o = {}) {
+  const info = await curseforge.readPack(file);
+  const inst = await instances.create({ name: o.name || info.name, mc: info.mc, loader: info.loader, loaderVersion: info.loaderVersion, icon: o.icon, source: o.source || { type: 'cfpack', name: info.name, version: info.version } });
+  send('instances:changed');
+  const { promise } = startTask(`Modpack: ${info.name}`, async (ctx) => {
+    const r = await curseforge.applyPack(inst, file, ctx);
+    const p = await launcher.prepare({ root: dataDir(), instance: inst, settings: S(), ctx: { ...ctx, onVersionId: (vid) => instances.update(inst.id, { versionId: vid }).catch(() => {}) } });
+    await instances.update(inst.id, { versionId: p.versionId, installed: true });
+    send('instances:changed');
+    if (r.blocked.length) {
+      ctx.onLog?.(`Pliki do pobrania ręcznie (autorzy nie pozwalają na pobieranie w launcherach):\n${r.blocked.map((b) => `• ${b.name} → ${b.folder}/  ${b.url || ''}`).join('\n')}`);
+      toast(`Modpack „${info.name}”: ${r.blocked.length} plików trzeba pobrać ręcznie ze strony CurseForge i wrzucić do instancji (lista w konsoli zadania).`, { error: true });
+    }
+  }, { instanceId: inst.id, doneText: 'Modpack gotowy' });
+  promise.then(() => toast(`Modpack „${info.name}” jest gotowy do gry`)).catch(() => {});
+  store.set({ selectedInstance: inst.id });
+  return inst;
+}
+handle('pack:isCurseForge', async (file) => !!(await curseforge.readPack(file).catch(() => null)));
 handle('mrpack:import', async (file) => {
   if (!file) {
-    const r = await dialog.showOpenDialog(win, { filters: [{ name: 'Modpack Modrinth', extensions: ['mrpack'] }], properties: ['openFile'] });
+    const r = await dialog.showOpenDialog(win, { filters: [{ name: 'Modpack (Modrinth .mrpack, CurseForge .zip)', extensions: ['mrpack', 'zip'] }], properties: ['openFile'] });
     if (r.canceled) return null;
     file = r.filePaths[0];
   }
+  if (file.toLowerCase().endsWith('.zip')) return installCfPackFile(file);
   return installMrpackFile(file);
 });
 

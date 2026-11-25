@@ -74,3 +74,12 @@ export function renderMarkdown(md) {
   frag.append(...root.childNodes);
   return frag;
 }
+
+/** Opis w HTML (CurseForge) – ta sama lista dozwolonych tagów co dla Markdown. */
+export function renderHtml(html) {
+  const doc = new DOMParser().parseFromString(`<div>${String(html || '')}</div>`, 'text/html');
+  const root = sanitize(doc.body.firstChild);
+  const frag = document.createDocumentFragment();
+  frag.append(...root.childNodes);
+  return frag;
+}

@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 const invoke = async (ch, ...args) => {
   const r = await ipcRenderer.invoke(ch, ...args);
-  if (!r.ok) { const e = new Error(r.error); e.code = r.code; throw e; }
+  if (!r.ok) { const e = new Error(r.error); e.code = r.code; if (r.url) e.url = r.url; throw e; }
   return r.data;
 };
 const listen = (ch) => (fn) => {
@@ -14,6 +14,8 @@ const listen = (ch) => (fn) => {
 
 contextBridge.exposeInMainWorld('jl', {
   invoke,
+  // surowa odpowiedź { ok, data | error, code, url } – błędy przechodzące przez contextBridge tracą własne pola
+  invokeRaw: (ch, ...args) => ipcRenderer.invoke(ch, ...args),
   on: (ch, fn) => {
     const allowed = ['tasks:update', 'tasks:remove', 'task:log', 'game:log', 'game:state', 'instances:changed', 'toast', 'jm:state', 'jm:connection', 'update:status', 'win:state'];
     if (!allowed.includes(ch)) throw new Error(`Nieznany kanał ${ch}`);

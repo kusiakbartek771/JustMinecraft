@@ -144,6 +144,7 @@ function drawAccount() {
 }
 
 // ---------- JustMusic: teraz gra ----------
+let npKey = null;
 function drawNowPlaying() {
   const slot = document.getElementById('np-slot');
   if (!slot) return;
@@ -152,7 +153,10 @@ function drawNowPlaying() {
   if (!S.settings?.justmusic?.enabled || !S.settings.justmusic.showNowPlaying || !S.jm.connected || !s?.track) return;
   const pct = s.duration ? Math.min(100, ((s.time || 0) / s.duration) * 100) : 0;
   const art = h('div.np-art', { style: s.track.thumb ? { backgroundImage: `url("${s.track.thumb}")` } : null, html: s.track.thumb ? '' : icon('music') });
-  slot.append(h('div.now-playing', { title: `${s.track.title} – ${s.track.artist || ''}` },
+  const key = `${s.track.title}|${s.track.artist || ''}`;
+  const changed = npKey !== null && npKey !== key;
+  npKey = key;
+  slot.append(h(`div.now-playing${changed ? '.np-change' : ''}`, { title: `${s.track.title} – ${s.track.artist || ''}` },
     art,
     h('div.np-meta', { style: { cursor: 'pointer' }, onClick: () => navigate('justmusic') }, h('b', { text: s.track.title }), h('small', { text: s.track.artist || 'JustMusic' })),
     h('div.np-ctl', null,

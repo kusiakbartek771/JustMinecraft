@@ -9,7 +9,7 @@ import { LOADER_NAMES } from '../theme.js';
 
 registerView('packs', (root) => {
   root.append(h('div.page-head', null, h('h1', { text: t('Paczki i Google Drive') }), h('div.spacer'),
-    btn(t('Importuj .mrpack'), async () => { try { const i = await api('mrpack:import'); if (i) { await refreshInstances(); navigate('instance', { id: i.id }); } } catch (e) { toastError(e); } }, { icon: 'upload' }),
+    btn(t('Importuj modpack (.mrpack / .zip)'), async () => { try { const i = await api('mrpack:import'); if (i) { await refreshInstances(); navigate('instance', { id: i.id }); } } catch (e) { toastError(e); } }, { icon: 'upload' }),
     btn(t('Import z linku Drive'), () => driveDialog(), { kind: 'primary', icon: 'drive' })));
 
   const featured = h('div');

@@ -3,3 +3,4 @@ dist/
 .DS_Store
 *.log
 /test-data/
+/src/main/cf-key.json

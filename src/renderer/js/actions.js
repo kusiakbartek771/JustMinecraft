@@ -70,15 +70,19 @@ export async function removeInstance(inst) {
   } catch (e) { toastError(e); return false; }
 }
 
-export async function installProject({ instance, project, type, versionId, world }) {
+export async function installProject({ instance, project, type, versionId, world, source }) {
   try {
-    const r = await api('modrinth:install', { instanceId: instance.id, projectId: project.id, versionId, type, world, title: project.title });
+    const r = await api('modrinth:install', { instanceId: instance.id, projectId: project.id, versionId, type, world, title: project.title, source: source || project.platform || 'modrinth' });
     const extra = r.installed.length > 1 ? ` (+${r.installed.length - 1} ${t('zależności')})` : '';
     toast(`${t('Zainstalowano')}: ${project.title}${extra}`, { success: true });
     for (const w of r.warnings || []) toast(w, { error: true });
     emit('content-changed', instance.id);
     return true;
-  } catch (e) { toastError(e); return false; }
+  } catch (e) {
+    if (e.code === 'CF_BLOCKED' && e.url) toast(e.message, { error: true, duration: 12000, action: { label: t('Otwórz stronę'), run: () => api('shell:open', e.url) } });
+    else toastError(e);
+    return false;
+  }
 }
 
 /** Wybór świata dla datapacka (albo „wszystkie światy”). */

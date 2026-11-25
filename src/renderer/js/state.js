@@ -1,5 +1,14 @@
 // Stan aplikacji w interfejsie + prosta szyna zdarzeń.
-export const api = window.jl.invoke;
+export async function api(ch, ...args) {
+  const r = await window.jl.invokeRaw(ch, ...args);
+  if (!r.ok) {
+    const e = new Error(r.error);
+    if (r.code !== undefined) e.code = r.code;
+    if (r.url) e.url = r.url;
+    throw e;
+  }
+  return r.data;
+}
 
 export const S = {
   info: null,

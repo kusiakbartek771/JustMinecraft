@@ -15,9 +15,10 @@ export function navigate(name, param = null, o = {}) {
   try { current.cleanup?.(); } catch (e) { console.error(e); }
   root.replaceChildren();
   root.scrollTop = 0;
-  root.classList.remove('enter');
+  root.classList.remove('enter', 'back');
   void root.offsetWidth;
   root.classList.add('enter');
+  if (o.back) root.classList.add('back');
   current = { name, param, cleanup: null };
   try {
     const r = views.get(name)(root, param);
@@ -32,8 +33,8 @@ export function navigate(name, param = null, o = {}) {
 
 export function back() {
   const prev = history.pop();
-  if (prev) navigate(prev.name, prev.param, { replace: true });
-  else navigate('home', null, { replace: true });
+  if (prev) navigate(prev.name, prev.param, { replace: true, back: true });
+  else navigate('home', null, { replace: true, back: true });
 }
 
 export const route = () => current;

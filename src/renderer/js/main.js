@@ -102,6 +102,7 @@ function wireDragDrop() {
     const paths = [...e.dataTransfer.files].map((f) => window.jl.pathForFile(f)).filter(Boolean);
     if (!paths.length) return;
     const packs = paths.filter((p) => p.toLowerCase().endsWith('.mrpack'));
+    for (const p of paths.filter((x) => x.toLowerCase().endsWith('.zip'))) if (await api('pack:isCurseForge', p).catch(() => false)) packs.push(p);
     for (const p of packs) {
       try { const inst = await api('mrpack:import', p); await refreshInstances(); toast(t('Importuję modpack „{n}”', { n: inst.name })); } catch (er) { toastError(er); }
     }

@@ -196,7 +196,7 @@ registerView('instance', async (root, param) => {
       const row = h(`div.content-item${it.enabled ? '' : '.disabled'}`, {
         onContextmenu: (e) => contextMenu(e, [
           { label: it.enabled ? t('Wyłącz') : t('Włącz'), icon: it.enabled ? 'eye' : 'check', run: () => toggle(it, !it.enabled) },
-          it.slug || it.projectId ? { label: t('Strona projektu'), icon: 'external', run: () => navigate('project', { id: it.projectId || it.slug, instanceId: id, type: ctype }) } : null,
+          it.slug || it.projectId ? { label: t('Strona projektu'), icon: 'external', run: () => navigate('project', { id: it.projectId || it.slug, instanceId: id, type: ctype, source: it.source === 'curseforge' ? 'curseforge' : 'modrinth' }) } : null,
           up ? { label: t('Aktualizuj do {v}', { v: up.number }), icon: 'download', run: () => updateAll([it.sha1]) } : null,
           { label: t('Pokaż w folderze'), icon: 'folder', run: () => api('shell:showItem', it.path) },
           '-',
