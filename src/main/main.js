@@ -1,5 +1,5 @@
 // JustMinecraft – proces główny: okno, IPC, zadania w tle (instalacje, pobieranie), uruchamianie gry.
-const { app, BrowserWindow, ipcMain, dialog, shell, nativeTheme, Menu, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, nativeTheme, Menu, screen, protocol, nativeImage, clipboard } = require('electron');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const path = require('path');
@@ -18,6 +18,9 @@ const modrinth = require('./modrinth');
 const curseforge = require('./curseforge');
 const drive = require('./drive');
 const justhud = require('./justhud');
+const modcheck = require('./modcheck');
+const worlds = require('./worlds');
+const packshare = require('./packshare');
 const accounts = require('./accounts');
 const jm = require('./justmusic');
 const updater = require('./updater');
@@ -36,6 +39,8 @@ app.setName('JustMinecraft');
 if (process.env.JL_USERDATA) app.setPath('userData', path.resolve(process.env.JL_USERDATA));
 if (process.platform === 'win32') app.setAppUserModelId('app.justlauncher.minecraft');
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
+// zrzuty ekranu z instancji w galerii: jmshot://thumb|full/<instancja>/<plik>
+protocol.registerSchemesAsPrivileged([{ scheme: 'jmshot', privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
 
 let win = null;
 const S = () => store.get();
@@ -485,14 +490,59 @@ async function installCfPackFile(file, o = {}) {
   store.set({ selectedInstance: inst.id });
   return inst;
 }
-handle('pack:isCurseForge', async (file) => !!(await curseforge.readPack(file).catch(() => null)));
+// --- eksport i kody udostępniania ---
+handle('instances:export', async (id, kind, o = {}) => {
+  const inst = await instances.get(id);
+  const ext = kind === 'mrpack' ? 'mrpack' : 'zip';
+  const r = await dialog.showSaveDialog(win, { defaultPath: `${inst.name.replace(/[\\/:*?"<>|]/g, '_')}.${ext}`, filters: [{ name: kind === 'mrpack' ? 'Modpack Modrinth' : 'Instancja JustMinecraft', extensions: [ext] }] });
+  if (r.canceled || !r.filePath) return null;
+  const { promise } = startTask(`Eksport: ${inst.name}`, async (ctx) => {
+    const res = kind === 'mrpack' ? await packshare.exportMrpack(inst, r.filePath, o, ctx) : await packshare.exportZip(inst, r.filePath, o, ctx);
+    shell.showItemInFolder(r.filePath);
+    return { file: r.filePath, ...(res || {}) };
+  }, { instanceId: id, doneText: 'Wyeksportowano' });
+  return promise;
+});
+handle('share:code', async (id) => packshare.makeCode(await instances.get(id)));
+handle('share:preview', (code) => packshare.readCode(code));
+handle('share:import', async (code) => {
+  const d = packshare.readCode(code);
+  const inst = await instances.create({ name: d.name, mc: d.mc, loader: d.loader, loaderVersion: d.loaderVersion, source: { type: 'code' } });
+  send('instances:changed');
+  const { promise } = startTask(`Paczka z kodu: ${d.name}`, async (ctx) => {
+    const r = await packshare.applyCode(inst, d, ctx);
+    const p = await launcher.prepare({ root: dataDir(), instance: inst, settings: S(), ctx: { ...ctx, onVersionId: (vid) => instances.update(inst.id, { versionId: vid }).catch(() => {}) } });
+    await instances.update(inst.id, { versionId: p.versionId, installed: true });
+    send('instances:changed');
+    if (r.failed.length) toast(`Nie udało się pobrać ${r.failed.length} plików z kodu`, { error: true });
+    return r;
+  }, { instanceId: inst.id, doneText: 'Paczka gotowa' });
+  promise.catch(() => {});
+  return inst;
+});
+handle('pack:isCurseForge', async (file) => !!(await curseforge.readPack(file).catch(() => null)) || !!(await packshare.readZipManifest(file).catch(() => null)));
 handle('mrpack:import', async (file) => {
   if (!file) {
     const r = await dialog.showOpenDialog(win, { filters: [{ name: 'Modpack (Modrinth .mrpack, CurseForge .zip)', extensions: ['mrpack', 'zip'] }], properties: ['openFile'] });
     if (r.canceled) return null;
     file = r.filePaths[0];
   }
-  if (file.toLowerCase().endsWith('.zip')) return installCfPackFile(file);
+  if (file.toLowerCase().endsWith('.zip')) {
+    const own = await packshare.readZipManifest(file);
+    if (own) {
+      const inst = await instances.create({ name: own.name, mc: own.mc, loader: own.loader, loaderVersion: own.loaderVersion, icon: own.icon, color: own.color, source: { type: 'zip' } });
+      send('instances:changed');
+      const { promise } = startTask(`Import: ${own.name}`, async (ctx) => {
+        await packshare.applyZip(inst, file);
+        const p = await launcher.prepare({ root: dataDir(), instance: inst, settings: S(), ctx: { ...ctx, onVersionId: (vid) => instances.update(inst.id, { versionId: vid }).catch(() => {}) } });
+        await instances.update(inst.id, { versionId: p.versionId, installed: true });
+        send('instances:changed');
+      }, { instanceId: inst.id, doneText: 'Zaimportowano' });
+      promise.catch(() => {});
+      return inst;
+    }
+    return installCfPackFile(file);
+  }
   return installMrpackFile(file);
 });
 
@@ -588,6 +638,23 @@ function onGameStopped() {
   if (j.onGameExit === 'pause') bridge.command('pause');
 }
 
+const e4mcDomains = new Map();
+/** Czeka na wynik testu wydajności z JustHUD i przekazuje go do okna. */
+function watchBench(id, file) {
+  const started = Date.now();
+  const timer = setInterval(async () => {
+    try {
+      const r = JSON.parse(await fsp.readFile(file, 'utf8'));
+      clearInterval(timer);
+      await instances.update(id, { bench: { ...r, at: Date.now() } });
+      send('game:bench', { instanceId: id, result: r });
+      if (win) { if (!win.isVisible()) win.show(); win.flashFrame?.(true); }
+    } catch {
+      if (Date.now() - started > 60 * 60e3 || (!launcher.running.has(id) && Date.now() - started > 120e3)) clearInterval(timer);
+    }
+  }, 2000);
+}
+handle('e4mc:domain', (id) => e4mcDomains.get(id) || null);
 async function launchInstance(id, o = {}) {
   const inst = await instances.get(id);
   if (launcher.running.has(id)) throw new Error(`${inst.name} już działa`);
@@ -602,19 +669,33 @@ async function launchInstance(id, o = {}) {
       settings.game = { ...settings.game, memory: { ...settings.game.memory, max: launcher.suggestMemory(mods.filter((m) => m.endsWith('.jar')).length) } };
     }
     // JustHUD (widżety w grze) – dołóż albo usuń właściwy plik
-    const hudOn = inst.justhud ?? settings.game.justhud ?? true;
+    const hudOn = o.bench ? true : inst.justhud ?? settings.game.justhud ?? true;
     const hud = await justhud.sync(inst, hudOn).catch((e) => { ctx.onLog?.(`[JustMinecraft] JustHUD: ${e.message}`); return null; });
     if (hud) {
       await content.remember(inst, path.join('mods', hud), { source: 'justminecraft', title: 'JustHUD', description: 'Widżety w grze (JustMusic, zbroja, współrzędne, FPS, zegar). Edytor: klawisz J. Wbudowany w launcher.', type: 'mod', builtin: true }).catch(() => {});
     }
     const port = settings.justmusic?.port || 47851;
-    const instance = { ...inst, quickJoin: o.server || inst.quickJoin, jvmArgs: `${inst.jvmArgs || ''} -Djusthud.port=${port}`.trim() };
+    let benchArgs = '';
+    if (o.bench) {
+      if (!hud) throw new Error('Test wydajności wymaga JustHUD (Fabric, Quilt, Forge albo NeoForge w obsługiwanej wersji).');
+      const out = path.join(inst.dir, '.justlauncher', 'bench.json');
+      await fsp.rm(out, { force: true });
+      benchArgs = ` -Djusthud.bench=${Number(o.bench) || 60} "-Djusthud.benchOut=${out}"`;
+      watchBench(id, out);
+    }
+    const instance = { ...inst, quickJoin: o.server || inst.quickJoin, jvmArgs: `${inst.jvmArgs || ''} -Djusthud.port=${port}${benchArgs}`.trim() };
     const r = await launcher.launch({
       root: dataDir(), instance, account, settings,
       ctx: { ...ctx, onVersionId: (vid) => instances.update(id, { versionId: vid }).catch(() => {}) },
     }, {
-      onLog: (line) => send('game:log', { instanceId: id, line }),
+      onLog: (line) => {
+        send('game:log', { instanceId: id, line });
+        // e4mc: adres serwera dla znajomych po „Otwórz w sieci LAN”
+        const m = /hosted on domain \[([^\]\s]+)\]/i.exec(line) || /\b((?!broker\.)[a-z0-9-]+(?:\.[a-z0-9-]+)+\.e4mc\.link)\b/i.exec(line);
+        if (m && e4mcDomains.get(id) !== m[1]) { e4mcDomains.set(id, m[1]); send('game:e4mc', { instanceId: id, domain: m[1] }); }
+      },
       onStart: () => {
+        e4mcDomains.delete(id);
         instances.update(id, { lastPlayed: Date.now(), installed: true }).then(() => send('instances:changed')).catch(() => {});
         send('game:state', { instanceId: id, running: true });
         const after = S().game.afterLaunch;
@@ -624,6 +705,11 @@ async function launchInstance(id, o = {}) {
       },
       onExit: async (e) => {
         await instances.recordPlay(id, e.playedMs).catch(() => {});
+        // automatyczne kopie zmienionych światów
+        if (S().backups?.auto !== false) {
+          worlds.autoBackup(inst, S().backups?.keep || 5, (l) => send('game:log', { instanceId: id, line: `[JustMinecraft] ${l}` }))
+            .then((list) => { if (list.length) toast(`Kopia zapasowa: ${list.join(', ')}`, { icon: 'shield' }); }).catch(() => {});
+        }
         send('game:state', { instanceId: id, running: false, ...e });
         send('instances:changed');
         if (win && (S().game.afterLaunch !== 'keep' || e.crashed)) { if (!win.isVisible()) win.show(); if (e.crashed) { win.restore(); win.focus(); } }
@@ -636,6 +722,50 @@ async function launchInstance(id, o = {}) {
   return promise;
 }
 handle('game:launch', (id, o) => launchInstance(id, o));
+handle('mods:check', async (id) => modcheck.check(await instances.get(id)));
+// --- światy ---
+const noGame = (id) => { if (launcher.running.has(id)) throw new Error('Zamknij grę, zanim zmienisz kopie świata'); };
+handle('worlds:info', async (id, w) => worlds.info(await instances.get(id), w));
+handle('worlds:backup', async (id, w) => {
+  const inst = await instances.get(id);
+  const { promise } = startTask(`Kopia świata „${w}”`, (ctx) => worlds.backup(inst, w, { onStatus: ctx.onStatus }), { instanceId: id, doneText: 'Kopia gotowa' });
+  return promise;
+});
+handle('worlds:restore', async (id, w, file) => {
+  noGame(id);
+  const inst = await instances.get(id);
+  const { promise } = startTask(`Przywracanie „${w}”`, () => worlds.restore(inst, w, file), { instanceId: id, doneText: 'Przywrócono' });
+  return promise;
+});
+handle('worlds:removeBackup', async (id, w, file) => worlds.removeBackup(await instances.get(id), w, file));
+handle('worlds:showBackups', async (id, w) => { const inst = await instances.get(id); const d = path.join(inst.dir, '.justlauncher', 'backups', w); await fsp.mkdir(d, { recursive: true }); shell.openPath(d); return true; });
+handle('worlds:map', async (id, w, o = {}) => {
+  const inst = await instances.get(id);
+  const dimension = o.dimension || 'overworld';
+  const cacheDir = path.join(inst.dir, '.justlauncher', 'maps');
+  const base = path.join(cacheDir, `${w.replace(/[^\w\-]+/g, '_')}-${dimension}`);
+  const lvl = await fsp.stat(path.join(inst.dir, 'saves', w, 'level.dat')).catch(() => null);
+  try {
+    const meta = JSON.parse(await fsp.readFile(`${base}.json`, 'utf8'));
+    if (!o.force && lvl && meta.levelMtime === lvl.mtimeMs) return { ...meta, url: `data:image/png;base64,${(await fsp.readFile(`${base}.png`)).toString('base64')}`, cached: true };
+  } catch {}
+  const info = await worlds.info(inst, w).catch(() => ({}));
+  const c = info.player || info.spawn || { x: 0, z: 0 };
+  const r = await worlds.renderMap(inst, w, { x: c.x, z: c.z, dimension, maxRegions: o.maxRegions || 16, onProgress: (p) => send('worlds:mapProgress', { id, world: w, p }) });
+  if (r.empty) return { empty: true };
+  const { nativeImage } = require('electron');
+  const png = nativeImage.createFromBitmap(Buffer.from(r.bgra), { width: r.width, height: r.height }).toPNG();
+  const meta = { width: r.width, height: r.height, minX: r.minX, minZ: r.minZ, chunks: r.chunks, regions: r.regions, totalRegions: r.totalRegions, player: info.player || null, spawn: info.spawn || null, levelMtime: lvl?.mtimeMs || 0 };
+  await fsp.mkdir(cacheDir, { recursive: true });
+  await fsp.writeFile(`${base}.png`, png);
+  await fsp.writeFile(`${base}.json`, JSON.stringify(meta));
+  return { ...meta, url: `data:image/png;base64,${png.toString('base64')}` };
+});
+handle('mods:fix', async (id, problems) => {
+  const inst = await instances.get(id);
+  const { promise } = startTask(`Naprawa modów → ${inst.name}`, (ctx) => modcheck.fix(inst, problems, ctx), { instanceId: id, doneText: 'Naprawiono' });
+  return promise;
+});
 handle('justhud:support', async (id) => { const s = justhud.support(await instances.get(id)); return { ok: s.ok, reason: s.reason || null, file: s.jar?.file || null }; });
 handle('game:kill', (id) => launcher.kill(id));
 handle('game:running', () => launcher.runningList());
@@ -695,7 +825,56 @@ app.on('second-instance', (_e, argv) => {
   if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); }
 });
 
+// ---------- galeria zrzutów ----------
+const thumbs = new Map();
+async function shotPath(instId, file) {
+  if (!/^[^\\/]+\.(png|jpe?g)$/i.test(file)) throw new Error('Zła nazwa pliku');
+  const inst = await instances.get(instId);
+  return { inst, file: path.join(inst.dir, 'screenshots', file) };
+}
+handle('gallery:list', async () => {
+  const out = [];
+  for (const inst of await instances.list()) {
+    let files = [];
+    try { files = await fsp.readdir(path.join(inst.dir, 'screenshots')); } catch { continue; }
+    for (const f of files) {
+      if (!/\.(png|jpe?g)$/i.test(f)) continue;
+      const st = await fsp.stat(path.join(inst.dir, 'screenshots', f)).catch(() => null);
+      if (st) out.push({ instanceId: inst.id, instance: inst.name, file: f, size: st.size, date: st.mtimeMs });
+    }
+  }
+  return out.sort((a, b) => b.date - a.date);
+});
+handle('gallery:cover', async (instId, file) => {
+  const { file: p } = await shotPath(instId, file);
+  const img = nativeImage.createFromPath(p);
+  const small = img.getSize().width > 1280 ? img.resize({ width: 1280, quality: 'best' }) : img;
+  await instances.update(instId, { cover: `data:image/jpeg;base64,${small.toJPEG(85).toString('base64')}` });
+  send('instances:changed');
+  return true;
+});
+handle('gallery:copy', async (instId, file) => { const { file: p } = await shotPath(instId, file); clipboard.writeImage(nativeImage.createFromPath(p)); return true; });
+handle('gallery:show', async (instId, file) => { const { file: p } = await shotPath(instId, file); shell.showItemInFolder(p); return true; });
+handle('gallery:remove', async (instId, file) => { const { file: p } = await shotPath(instId, file); await shell.trashItem(p); thumbs.delete(`${instId}/${file}`); return true; });
+
 app.whenReady().then(async () => {
+  protocol.handle('jmshot', async (req) => {
+    try {
+      const u = new URL(req.url);
+      const [, instId, file] = decodeURIComponent(u.pathname).split('/');
+      const { file: p } = await shotPath(instId, file);
+      if (u.hostname === 'full') return new Response(await fsp.readFile(p), { headers: { 'Content-Type': /\.png$/i.test(p) ? 'image/png' : 'image/jpeg' } });
+      const st = await fsp.stat(p);
+      const key = `${instId}/${file}`;
+      let c = thumbs.get(key);
+      if (!c || c.mtime !== st.mtimeMs) {
+        const img = nativeImage.createFromPath(p);
+        c = { mtime: st.mtimeMs, buf: img.resize({ width: 360, quality: 'good' }).toJPEG(80) };
+        thumbs.set(key, c);
+      }
+      return new Response(c.buf, { headers: { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=3600' } });
+    } catch (e) { return new Response('not found', { status: 404 }); }
+  });
   Menu.setApplicationMenu(process.platform === 'darwin' ? Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]) : null);
   nativeTheme.themeSource = 'dark';
   const s = S();

@@ -9,6 +9,7 @@ import { LOADER_NAMES, LOADER_COLORS } from '../theme.js';
 import { play, removeInstance, launchTask, pickWorld } from '../actions.js';
 import { instanceMenu } from './instances.js';
 import { consoleView } from './console.js';
+import { openWorld } from './world.js';
 
 const CONTENT_TABS = [['mod', 'Mody', 'puzzle'], ['resourcepack', 'Resource packi', 'image'], ['shader', 'Shadery', 'sun'], ['datapack', 'Datapacki', 'map']];
 
@@ -46,6 +47,7 @@ registerView('instance', async (root, param) => {
           inst.group ? h('span.chip', { text: inst.group }) : null),
         busy ? h('div', { style: { marginTop: '10px', maxWidth: '420px' } }, progressBar(busy.progress?.total ? (busy.progress.done / busy.progress.total) * 100 : null)) : null),
       h('div.row', null,
+        inst.loader !== 'vanilla' ? btn(t('Graj ze znajomymi'), () => import('./friends.js').then((m) => m.playWithFriends(inst)), { icon: 'users', kind: 'ghost' }) : null,
         iconBtn('folder', t('Otwórz folder'), () => api('instances:open', id)),
         iconBtn('more', t('Więcej'), (e) => instanceMenu(e, inst)),
         playB)));
@@ -239,12 +241,13 @@ registerView('instance', async (root, param) => {
     if (!worlds.length) { box.append(empty('globe', t('Brak światów'), t('Uruchom grę i stwórz świat – pojawi się tutaj.'))); return; }
     const grid = h('div.inst-grid');
     for (const w of worlds) {
-      grid.append(h('div.card.inst-card', { onClick: () => api('instances:open', id, `saves/${w.name}`) },
+      grid.append(h('div.card.inst-card', { onClick: () => openWorld(inst, w.name) },
         h('div.inst-cover', { style: { background: w.icon ? `url("${w.icon}") center/cover` : coverStyle(inst), imageRendering: 'pixelated' } }),
         h('div.body', { style: { paddingTop: '14px' } }, h('h3', { text: w.name }),
           h('div.foot', null, h('span', { text: fmtAgo(w.lastPlayed) }), h('div.spacer'), h('span.chip', { text: `${w.datapacks} ${t('datapacków')}` })),
           h('div.row', null,
             btn(t('Datapacki'), (e) => { e.stopPropagation(); ctype = 'datapack'; tab = 'content'; param.world = w.name; drawTabs(); drawBody(); }, { small: true, icon: 'map' }),
+            btn(t('Mapa i kopie'), (e) => { e.stopPropagation(); openWorld(inst, w.name); }, { small: true, icon: 'globe', kind: 'primary' }),
             btn(t('Folder'), (e) => { e.stopPropagation(); api('instances:open', id, `saves/${w.name}`); }, { small: true, icon: 'folder' })))));
     }
     box.append(grid);

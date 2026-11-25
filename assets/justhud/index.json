@@ -1,71 +1,71 @@
 {
- "version": "1.0.0",
+ "version": "1.1.0",
  "jars": [
   {
-   "file": "justhud-1.0.0+1.20.1-fabric.jar",
+   "file": "justhud-1.1.0+1.20.1-fabric.jar",
    "loader": "fabric",
    "mc": "1.20.1",
    "min": "1.20",
    "max": "1.20.2"
   },
   {
-   "file": "justhud-1.0.0+1.20.6-fabric.jar",
+   "file": "justhud-1.1.0+1.20.6-fabric.jar",
    "loader": "fabric",
    "mc": "1.20.6",
    "min": "1.20.5",
    "max": "1.21"
   },
   {
-   "file": "justhud-1.0.0+1.21.1-fabric.jar",
+   "file": "justhud-1.1.0+1.21.1-fabric.jar",
    "loader": "fabric",
    "mc": "1.21.1",
    "min": "1.21",
    "max": "1.21.2"
   },
   {
-   "file": "justhud-1.0.0+1.21.11-fabric.jar",
+   "file": "justhud-1.1.0+1.21.11-fabric.jar",
    "loader": "fabric",
    "mc": "1.21.11",
    "min": "1.21.11",
    "max": "1.22"
   },
   {
-   "file": "justhud-1.0.0+26.3-fabric.jar",
+   "file": "justhud-1.1.0+26.3-fabric.jar",
    "loader": "fabric",
    "mc": "26.3",
    "min": "26.3",
    "max": "26.4"
   },
   {
-   "file": "justhud-1.0.0+1.20.1-forge.jar",
+   "file": "justhud-1.1.0+1.20.1-forge.jar",
    "loader": "forge",
    "mc": "1.20.1",
    "min": "1.20",
    "max": "1.20.2"
   },
   {
-   "file": "justhud-1.0.0+1.20.6-neoforge.jar",
+   "file": "justhud-1.1.0+1.20.6-neoforge.jar",
    "loader": "neoforge",
    "mc": "1.20.6",
    "min": "1.20.5",
    "max": "1.21"
   },
   {
-   "file": "justhud-1.0.0+1.21.1-neoforge.jar",
+   "file": "justhud-1.1.0+1.21.1-neoforge.jar",
    "loader": "neoforge",
    "mc": "1.21.1",
    "min": "1.21",
    "max": "1.21.2"
   },
   {
-   "file": "justhud-1.0.0+1.21.11-neoforge.jar",
+   "file": "justhud-1.1.0+1.21.11-neoforge.jar",
    "loader": "neoforge",
    "mc": "1.21.11",
    "min": "1.21.11",
    "max": "1.22"
   },
   {
-   "file": "justhud-1.0.0+26.3-neoforge.jar",
+   "file": "justhud-1.1.0+26.3-neoforge.jar",
    "loader": "neoforge",
    "mc": "26.3",
    "min": "26.3",

@@ -109,7 +109,7 @@ public class EditorScreen extends Screen {
 
     // panel: pozycja i skala na ekranie (rysujemy w lokalnych współrzędnych)
     private float px, py, ps = 1f;
-    private static final int PH = 14 + 12 + 5 * ROW + 4 + 11 + 16 + 4 * ROW + 4 + 11 + 4 * ROW + 4 + 2 * ROW + 6;
+    private static final int PH = 14 + 12 + Widgets.ALL.size() * ROW + 4 + 11 + 16 + 4 * ROW + 4 + 11 + 6 * ROW + 4 + 2 * ROW + 6;
 
     private void drawPanel(Gfx g, int smx, int smy, float open) {
         Config c = JustHud.config();
@@ -120,8 +120,9 @@ public class EditorScreen extends Screen {
         int mx = Math.round((smx - px) / ps), my = Math.round((smy - py) / ps);
         int x = 0, y = 0;
         int accent = c.accent;
-        g.panel(x, y, PW, PH, 0xF00D0E12);
-        g.fill(x, y, x + PW, y + 2, accent);
+        g.round(x, y, PW, PH, 6, 0xF215171D);
+        g.roundBorder(x, y, PW, PH, 6, 0xFF262A35);
+        g.round(x + 6, y, PW - 12, 2, 1, accent);
         y += 6;
         g.text("JustHUD", x + 6, y, accent);
         String hide = T.t("ukryj (Tab)", "hide (Tab)");
@@ -166,8 +167,8 @@ public class EditorScreen extends Screen {
 
         g.text(T.t("KLAWISZE", "KEYS"), x + 6, y, Widgets.DIM);
         y += 11;
-        String[] names = { T.t("Edytor", "Editor"), T.t("Play / pauza", "Play / pause"), T.t("Następny utwór", "Next track"), T.t("Poprzedni utwór", "Previous track") };
-        int[] keys = { c.editorKey, c.playPauseKey, c.nextKey, c.prevKey };
+        String[] names = { T.t("Edytor", "Editor"), T.t("Play / pauza", "Play / pause"), T.t("Następny utwór", "Next track"), T.t("Poprzedni utwór", "Previous track"), T.t("Głośniej", "Volume up"), T.t("Ciszej", "Volume down") };
+        int[] keys = { c.editorKey, c.playPauseKey, c.nextKey, c.prevKey, c.volUpKey, c.volDownKey };
         for (int i = 0; i < names.length; i++) {
             final int idx = i;
             String val = listening == i ? T.t("> naciśnij klawisz <", "> press a key <") : keyName(keys[i]);
@@ -195,6 +196,8 @@ public class EditorScreen extends Screen {
         if (idx == 1) c.playPauseKey = -1;
         if (idx == 2) c.nextKey = -1;
         if (idx == 3) c.prevKey = -1;
+        if (idx == 4) c.volUpKey = -1;
+        if (idx == 5) c.volDownKey = -1;
         JustHud.save();
         return -1;
     }
@@ -285,6 +288,8 @@ public class EditorScreen extends Screen {
                 if (listening == 1) c.playPauseKey = key;
                 if (listening == 2) c.nextKey = key;
                 if (listening == 3) c.prevKey = key;
+                if (listening == 4) c.volUpKey = key;
+                if (listening == 5) c.volDownKey = key;
                 JustHud.save();
             }
             listening = -1;

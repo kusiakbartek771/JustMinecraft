@@ -17,6 +17,7 @@ import './views/browse.js';
 import './views/project.js';
 import './views/packs.js';
 import './views/justmusic.js';
+import './views/gallery.js';
 import './views/settings.js';
 
 window.addEventListener('error', (e) => console.error(e.error || e.message));
@@ -69,6 +70,17 @@ function wireEvents() {
     }
   });
   window.jl.on('instances:changed', refresh);
+  // e4mc: adres serwera dla znajomych – do skopiowania jednym kliknięciem
+  window.jl.on('game:bench', ({ instanceId, result }) => {
+    const inst = S.instances.find((i) => i.id === instanceId);
+    if (inst) import('./views/perf.js').then((m) => m.showBench(inst, result));
+  });
+  window.jl.on('game:e4mc', ({ instanceId, domain }) => {
+    navigator.clipboard.writeText(domain).catch(() => {});
+    const inst = S.instances.find((i) => i.id === instanceId);
+    toast(t('Serwer dla znajomych gotowy: {d} (skopiowano)', { d: domain }), { success: true, duration: 20000, action: { label: t('Kopiuj ponownie'), run: () => navigator.clipboard.writeText(domain) } });
+    emit('e4mc', { instanceId, domain, name: inst?.name });
+  });
   window.jl.on('toast', (p) => toast(p.msg, p));
   window.jl.on('jm:state', (s) => { S.jm.state = s; emit('jm'); });
   window.jl.on('jm:connection', (c) => {

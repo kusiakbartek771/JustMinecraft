@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('jl', {
   // surowa odpowiedź { ok, data | error, code, url } – błędy przechodzące przez contextBridge tracą własne pola
   invokeRaw: (ch, ...args) => ipcRenderer.invoke(ch, ...args),
   on: (ch, fn) => {
-    const allowed = ['tasks:update', 'tasks:remove', 'task:log', 'game:log', 'game:state', 'instances:changed', 'toast', 'jm:state', 'jm:connection', 'update:status', 'win:state'];
+    const allowed = ['tasks:update', 'tasks:remove', 'task:log', 'game:log', 'game:state', 'instances:changed', 'toast', 'jm:state', 'jm:connection', 'update:status', 'win:state', 'worlds:mapProgress', 'game:e4mc', 'game:bench'];
     if (!allowed.includes(ch)) throw new Error(`Nieznany kanał ${ch}`);
     return listen(ch)(fn);
   },

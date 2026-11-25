@@ -63,6 +63,7 @@ public final class JustHud {
         if (!config().enabled || hudHidden(mc) || screen(mc) instanceof EditorScreen) return;
         if (mc.player == null) return;
         Gfx g = new Gfx(graphics);
+        Bench.frame(g);
         for (Widgets.Widget w : Widgets.ALL) {
             Config.WidgetCfg c = w.cfg();
             if (!c.on) continue;
@@ -109,11 +110,12 @@ public final class JustHud {
     }
 
     // ---------- klawisze (bez rejestracji w opcjach – działa tak samo na każdym loaderze) ----------
-    private static final boolean[] wasDown = new boolean[4];
+    private static final boolean[] wasDown = new boolean[6];
 
     // test automatyczny: -Djusthud.selftest=1 otwiera edytor na ekranie tytułowym i po kilku sekundach zamyka grę
     private static long selftestAt = 0;
-    private static boolean selftestShot;
+    private static boolean selftestShot, worldShot;
+    private static long worldSince;
 
     public static void tick() {
         Minecraft mc = Minecraft.getInstance();
@@ -133,10 +135,20 @@ public final class JustHud {
                 mc.stop();
             }
         }
-        if (mc.player == null) return;
+        if (mc.player == null) { worldSince = 0; return; }
+        // test: -Djusthud.worldshot=true robi zrzut ekranu z widżetami po 8 s w świecie
+        if (Boolean.getBoolean("justhud.worldshot") && !worldShot) {
+            if (worldSince == 0) worldSince = Anim.now();
+            else if (Anim.now() - worldSince > 8000) {
+                worldShot = true;
+                //#if MC < 26.3
+                net.minecraft.client.Screenshot.grab(mc.gameDirectory, mc.getMainRenderTarget(), msg -> LOG("worldshot: " + msg.getString()));
+                //#endif
+            }
+        }
         ensureStarted();
         Config c = config();
-        int[] keys = { c.editorKey, c.playPauseKey, c.nextKey, c.prevKey };
+        int[] keys = { c.editorKey, c.playPauseKey, c.nextKey, c.prevKey, c.volUpKey, c.volDownKey };
         for (int i = 0; i < keys.length; i++) {
             boolean down = keys[i] > 0 && screen(mc) == null && isDown(keys[i]);
             if (down && !wasDown[i]) {
@@ -145,6 +157,8 @@ public final class JustHud {
                     case 1: Music.command("toggle"); break;
                     case 2: Music.command("next"); break;
                     case 3: Music.command("prev"); break;
+                    case 4: Music.volumeStep(0.1); break;
+                    case 5: Music.volumeStep(-0.1); break;
                     default: break;
                 }
             }

@@ -19,6 +19,21 @@ export async function play(inst, o = {}) {
     openAccounts();
     return;
   }
+  // sprawdzenie modów przed startem (konflikty, brakujące zależności, zły loader/wersja)
+  if (!o.skipCheck && inst.loader !== 'vanilla') {
+    const r = await api('mods:check', inst.id).catch(() => ({ problems: [] }));
+    if (r.problems.length) {
+      const choice = await modProblems(inst, r.problems);
+      if (choice === 'cancel') return;
+      if (choice === 'fix') {
+        try {
+          const f = await api('mods:fix', inst.id, r.problems);
+          toast(t('Naprawiono: {n}', { n: f.done.length }) + (f.failed.length ? ` · ${t('nie udało się')}: ${f.failed.join('; ')}` : ''), { success: !f.failed.length, error: !!f.failed.length, duration: 7000 });
+          emit('content-changed', inst.id);
+        } catch (e) { toastError(e); return; }
+      }
+    }
+  }
   try {
     await api('game:launch', inst.id, o);
   } catch (e) {
@@ -29,6 +44,36 @@ export async function play(inst, o = {}) {
       openAccounts();
     } else toast(e.message, { error: true, action: { label: t('Pokaż konsolę'), run: () => navigate('instance', { id: inst.id, tab: 'console' }) } });
   }
+}
+
+const PROBLEM_IC = { missing: '🧩', loader: '🔀', version: '🕒', duplicate: '📑', conflict: '⚔️', broken: '💥' };
+
+/** Okno z problemami modów – zwraca 'fix' | 'play' | 'cancel'. */
+function modProblems(inst, problems) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (v) => { if (!done) { done = true; resolve(v); } };
+    const fixable = problems.some((p) => p.fix);
+    const m = modal((body, close) => {
+      body.append(h('p.muted', { text: t('Przed startem znalazłem problemy z modami. Gra prawdopodobnie by się wysypała.') }));
+      const list = h('div.col', { style: { gap: '6px', maxHeight: '320px', overflow: 'auto' } });
+      for (const p of problems) {
+        const fx = p.fix?.action === 'install' ? t('doinstaluję {x}', { x: p.fix.id }) : p.fix?.action === 'disable' ? t('wyłączę plik') : p.fix?.action === 'update' ? t('pobiorę wersję dla {v} albo wyłączę', { v: inst.mc }) : t('do ręcznego sprawdzenia');
+        list.append(h('div.card.card-pad', { style: { display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '10px 12px' } },
+          h('span', { text: PROBLEM_IC[p.kind] || '⚠️', style: { fontSize: '18px' } }),
+          h('div.grow', null, h('div', { text: p.text }), h('small.muted', { text: `${p.file || ''}${p.file ? ' · ' : ''}${fx}` }))));
+      }
+      body.append(list);
+    }, {
+      title: t('Problemy z modami – {name}', { name: inst.name }), icon: 'alert', wide: true,
+      onClose: () => finish('cancel'),
+      actions: [
+        { label: t('Anuluj'), kind: 'ghost', run: () => finish('cancel') },
+        { label: t('Graj mimo to'), run: () => finish('play') },
+        ...(fixable ? [{ label: t('Napraw i graj'), kind: 'primary', icon: 'wrench', run: () => finish('fix') }] : []),
+      ],
+    });
+  });
 }
 
 export function showCrash(inst, e) {

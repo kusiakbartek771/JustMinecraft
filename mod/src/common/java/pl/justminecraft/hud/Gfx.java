@@ -34,6 +34,54 @@ public final class Gfx {
         fill(x + w - 1, y + 1, x + w, y + h - 1, argb);
     }
 
+    /** Zaokrąglony prostokąt (promień w pikselach GUI) – jak karty w JustMusic. */
+    public void round(int x, int y, int w, int h, int r, int argb) {
+        r = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+        for (int i = 0; i < r; i++) {
+            int in = inset(r, i);
+            fill(x + in, y + i, x + w - in, y + i + 1, argb);
+            fill(x + in, y + h - 1 - i, x + w - in, y + h - i, argb);
+        }
+        fill(x, y + r, x + w, y + h - r, argb);
+    }
+
+    /** Obramowanie zaokrąglonego prostokąta (1 px). */
+    public void roundBorder(int x, int y, int w, int h, int r, int argb) {
+        r = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+        int in0 = inset(r, 0);
+        fill(x + in0, y, x + w - in0, y + 1, argb);
+        fill(x + in0, y + h - 1, x + w - in0, y + h, argb);
+        fill(x, y + r, x + 1, y + h - r, argb);
+        fill(x + w - 1, y + r, x + w, y + h - r, argb);
+        for (int i = 1; i <= r && r > 0; i++) {
+            int in = i == r ? 0 : inset(r, i), prev = inset(r, i - 1);
+            int a0 = in, a1 = Math.max(in + 1, prev);           // [a0, a1)
+            fill(x + a0, y + i, x + a1, y + i + 1, argb);
+            fill(x + w - a1, y + i, x + w - a0, y + i + 1, argb);
+            fill(x + a0, y + h - 1 - i, x + a1, y + h - i, argb);
+            fill(x + w - a1, y + h - 1 - i, x + w - a0, y + h - i, argb);
+        }
+    }
+
+    private static int inset(int r, int row) {
+        double dy = r - row - 0.5;
+        return (int) Math.round(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
+    }
+
+    /** Pionowy gradient (np. okładka w kolorach Just: fiolet → róż). */
+    public void gradient(int x1, int y1, int x2, int y2, int top, int bottom) {
+        g.fillGradient(x1, y1, x2, y2, a(top), a(bottom));
+    }
+
+    /** Mały tekst (75%) – podpisy i czasy jak w JustMusic. */
+    public void small(String s, float x, float y, int argb) {
+        push(x, y, 0.75f);
+        text(s, 0, 0, argb);
+        pop();
+    }
+
+    public int smallWidth(String s) { return Math.round(font.width(s) * 0.75f); }
+
     public void outline(int x, int y, int w, int h, int argb) {
         fill(x, y, x + w, y + 1, argb);
         fill(x, y + h - 1, x + w, y + h, argb);

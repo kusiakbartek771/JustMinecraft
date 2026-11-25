@@ -37,14 +37,20 @@ public class Config {
     public int playPauseKey = -1;
     public int nextKey = -1;
     public int prevKey = -1;
+    public int volUpKey = -1;
+    public int volDownKey = -1;
     public Map<String, WidgetCfg> widgets = new LinkedHashMap<>();
 
     static Config defaults() {
         Config c = new Config();
-        c.widgets.put("music", new WidgetCfg(true, 2, -6, 6, 0));
+        // domyślnie z dala od powiadomień (prawy górny róg), paska bossa (środek u góry) i czatu (lewy dół)
+        c.widgets.put("music", new WidgetCfg(true, 0, 6, 6, 0));
+        c.widgets.put("coords", new WidgetCfg(true, 0, 6, 60, 0));
+        c.widgets.put("effects", new WidgetCfg(true, 0, 6, 104, 0));
         c.widgets.put("armor", new WidgetCfg(true, 5, -6, 0, 0));
-        c.widgets.put("coords", new WidgetCfg(true, 0, 6, 6, 0));
-        c.widgets.put("fps", new WidgetCfg(false, 0, 6, 30, 0));
+        c.widgets.put("ammo", new WidgetCfg(true, 7, 150, -4, 0));
+        c.widgets.put("speed", new WidgetCfg(false, 8, -6, -6, 0));
+        c.widgets.put("fps", new WidgetCfg(false, 2, -6, 6, 0));
         c.widgets.put("clock", new WidgetCfg(false, 1, 0, 6, 0));
         return c;
     }

@@ -18,6 +18,8 @@ const instance = {
 const account = { name: 'Tester', uuid: crypto.randomUUID(), type: 'offline' };
 const ctx = { onStatus: (s) => console.log('•', s), onProgress: () => {}, onVersionId: (id) => { instance.versionId = id; } };
 
+// świeże ustawienia JustHUD przy każdym teście
+fs.rmSync(path.join(instance.dir, 'config', 'justhud.json'), { force: true });
 const jar = await justhud.sync(instance, true);
 console.log('JustHUD:', jar);
 if (!jar) { console.log('brak jara dla', loader, mcv); process.exit(1); }

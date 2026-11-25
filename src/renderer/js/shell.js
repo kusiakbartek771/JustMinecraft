@@ -13,6 +13,7 @@ const NAV = [
   ['instances', 'grid', 'Instancje'],
   ['browse', 'compass', 'Odkrywaj'],
   ['packs', 'drive', 'Paczki i Drive'],
+  ['gallery', 'image', 'Galeria'],
   ['justmusic', 'music', 'JustMusic'],
   ['settings', 'settings', 'Ustawienia'],
 ];

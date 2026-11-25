@@ -15,7 +15,11 @@ Działa na **Windows, Linux i macOS**. Aktualizuje się sam – jednym kliknięc
 | 📦 **Instancje** | osobne instalacje z własnymi modami i światami, ikony (emoji/obraz), okładki, kolory, grupy, ulubione, duplikowanie, import folderu `.minecraft` lub innego launchera, wybór folderu instalacji |
 | 🧩 **Modrinth i CurseForge** | wyszukiwarka modów, modpacków, resource packów, shaderów i datapacków; automatyczne zależności; shadery same doinstalowują Iris/Oculus; sprawdzanie i instalacja aktualizacji; rozpoznawanie ręcznie dodanych modów po SHA1 |
 | ⚡ **Wydajność** | równoległe pobieranie z weryfikacją SHA1, profile JVM (G1GC / ZGC / słaby PC), automatyczny dobór RAM do liczby modów, „Pakiet wydajności” jednym kliknięciem (Sodium/Embeddium, Lithium, FerriteCore, ModernFix, EntityCulling…), GameMode i dedykowana karta graficzna na Linuksie |
-| 🖥️ **JustHUD – widżety w grze** | wbudowane w launcher: muzyka z JustMusic (z animowanym korektorem), wytrzymałość zbroi i przedmiotów, współrzędne, FPS, zegar; w grze klawisz **J** otwiera edytor (przeciąganie, rozmiar, styl, kolor akcentu, tło, animacje, klawisze sterowania muzyką) |
+| 🖥️ **JustHUD – widżety w grze** | wbudowane w launcher, w stylu JustMusic: muzyka z JustMusic (okładka z korektorem, pasek z czasem, głośność), wytrzymałość zbroi, efekty mikstur z czasem, strzały/totemy/bloki, współrzędne, prędkość, FPS, zegar; w grze **J** otwiera edytor (przeciąganie, rozmiar, styl, kolor, tło, animacje, klawisze muzyki i głośności) |
+| 🩺 **Sprawdzanie modów** | przed startem: brakujące zależności, mody na inny loader lub inną wersję gry, duplikaty, znane niezgodne pary – „Napraw i graj” doinstalowuje, podmienia albo wyłącza |
+| 🌍 **Światy** | mapa z góry (przesuwanie, powiększanie, gracz, spawn, Nether/End), seed, tryb, czas gry, statystyki; automatyczne kopie po wyjściu z gry i przywracanie jednym kliknięciem |
+| 🤝 **Ze znajomymi** | „Graj ze znajomymi” przez e4mc (bez przekierowania portów – adres trafia do schowka), kod paczki `JUST1-…` do wklejenia u znajomego, eksport `.mrpack` i całej instancji `.zip` |
+| 📸 **Galeria i test wydajności** | zrzuty ekranu ze wszystkich instancji (okładka, kopiowanie, usuwanie); test FPS/pamięci w grze z podpowiedziami (RAM, pakiet wydajności, profil JVM) |
 | ☁️ **Google Drive** | import modów z publicznego folderu/pliku; „Paczki autora” widoczne dla wszystkich; synchronizacja pobiera tylko zmiany |
 | 🎵 **JustMusic** | muzyka sama startuje z grą (playlista / wznowienie), ciszej podczas gry, pauza po wyjściu, „teraz gra” w launcherze, uruchamianie Minecrafta z JustMusic |
 | 🛠️ **Bez błędów** | czytelne komunikaty, okno awarii z podpowiedziami (pamięć, Java, konflikty modów), konsola na żywo, raporty awarii, „Napraw instalację” |
@@ -83,7 +87,7 @@ npm run dist:linux        # paczki lokalnie
 ### Wydanie nowej wersji
 
 1. Podbij `version` w `package.json`, commit.
-2. `git tag v1.2.0 && git push origin main v1.2.0`
+2. `git tag v1.3.0 && git push origin main v1.3.0`
 3. GitHub Actions zbuduje Windows/macOS/Linux i opublikuje wydanie – launchery użytkowników same się zaktualizują.
 
 ### Struktura

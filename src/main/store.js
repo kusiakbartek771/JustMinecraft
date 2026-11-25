@@ -24,6 +24,7 @@ const DEFAULTS = () => ({
   java: { path: '' },
   downloads: { concurrency: 16, autoShaderLoader: true, autoDependencies: true, showSnapshots: false, verifyOnRepair: true },
   drive: { apiKey: '' },
+  backups: { auto: true, keep: 5 },
   curseforge: { apiKey: '' },
   justmusic: {
     enabled: true, path: '', autostart: false, onGameStart: 'resume', playlistId: '', playlistName: '', onGameExit: 'pause',

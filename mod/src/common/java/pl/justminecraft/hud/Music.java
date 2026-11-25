@@ -21,12 +21,12 @@ public final class Music {
         public final boolean connected;  // JustMusic jest połączony z launcherem
         public final String title, artist;
         public final boolean playing;
-        public final double time, duration;
+        public final double time, duration, volume;
         final long receivedAt;
 
-        State(boolean launcher, boolean connected, String title, String artist, boolean playing, double time, double duration) {
+        State(boolean launcher, boolean connected, String title, String artist, boolean playing, double time, double duration, double volume) {
             this.launcher = launcher; this.connected = connected; this.title = title; this.artist = artist;
-            this.playing = playing; this.time = time; this.duration = duration; this.receivedAt = System.currentTimeMillis();
+            this.playing = playing; this.time = time; this.duration = duration; this.volume = volume; this.receivedAt = System.currentTimeMillis();
         }
 
         public boolean hasTrack() { return connected && title != null; }
@@ -38,7 +38,7 @@ public final class Music {
         }
     }
 
-    private static final State OFFLINE = new State(false, false, null, null, false, 0, 0);
+    private static final State OFFLINE = new State(false, false, null, null, false, 0, 0, 1);
     private static volatile State state = OFFLINE;
     private static Thread thread;
     private static final int PORT = Integer.getInteger("justhud.port", 47851);
@@ -81,13 +81,35 @@ public final class Music {
         // stan z JustMusic mógł być wysłany chwilę temu – dolicz upływ czasu
         long at = (long) num(o.get("at")), now = (long) num(o.get("now"));
         if (playing && at > 0 && now >= at) time += (now - at) / 1000.0;
-        return new State(true, connected, title, artist, playing, time, duration);
+        double volume = o.has("volume") ? num(o.get("volume")) : 1;
+        if (localVolumeAt > 0 && System.currentTimeMillis() - localVolumeAt < 2500) volume = localVolume;
+        return new State(true, connected, title, artist, playing, time, duration, volume);
+    }
+
+    // głośność ustawiona z gry – pokazujemy ją od razu, zanim JustMusic odeśle stan
+    static volatile double localVolume = 1;
+    static volatile long localVolumeAt = 0, volumeShownAt = 0;
+
+    public static long volumeShownAt() { return volumeShownAt; }
+
+    /** Zmienia głośność JustMusic o krok (np. +0.1 / -0.1). */
+    public static void volumeStep(double delta) {
+        double v = Math.max(0, Math.min(1, Math.round((state.volume + delta) * 20) / 20.0));
+        localVolume = v;
+        localVolumeAt = volumeShownAt = System.currentTimeMillis();
+        State s = state;
+        state = new State(s.launcher, s.connected, s.title, s.artist, s.playing, s.position(), s.duration, v);
+        send("{\"cmd\":\"volume\",\"value\":" + v + "}");
     }
 
     /** Polecenie dla JustMusic: toggle, next, prev, shuffle. Wysyłane w tle. */
     public static void command(String cmd) {
+        send("{\"cmd\":\"" + cmd + "\"}");
+    }
+
+    private static void send(String json) {
         Thread t = new Thread(() -> {
-            try { request("POST", "/game/cmd", "{\"cmd\":\"" + cmd + "\"}"); } catch (Exception ignored) {}
+            try { request("POST", "/game/cmd", json); } catch (Exception ignored) {}
         }, "JustHUD-Cmd");
         t.setDaemon(true);
         t.start();

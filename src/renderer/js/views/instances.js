@@ -24,6 +24,12 @@ export function instanceMenu(e, inst) {
     window.jl.platform === 'win32' ? { label: t('Skrót na pulpicie'), icon: 'link', run: async () => { try { await api('instances:shortcut', inst.id); toast(t('Utworzono skrót na pulpicie')); } catch (er) { toastError(er); } } } : null,
     { label: t('Napraw instalację'), icon: 'wrench', run: () => api('instances:repair', inst.id).catch(toastError) },
     '-',
+    inst.loader !== 'vanilla' ? { label: t('Test wydajności'), icon: 'gauge', run: () => import('./perf.js').then((m) => m.startBench(inst)) } : null,
+    inst.bench ? { label: t('Ostatni wynik testu'), icon: 'gauge', run: () => import('./perf.js').then((m) => m.showBench(inst, inst.bench)) } : null,
+    { label: t('Udostępnij kodem'), icon: 'link', run: () => import('./share.js').then((m) => m.shareCode(inst)) },
+    { label: t('Eksportuj .mrpack (Modrinth)'), icon: 'package', run: () => import('./share.js').then((m) => m.exportPack(inst, 'mrpack')) },
+    { label: t('Eksportuj całą instancję (.zip)'), icon: 'download', run: () => import('./share.js').then((m) => m.exportPack(inst, 'zip')) },
+    '-',
     { label: t('Usuń'), icon: 'trash', danger: true, run: () => removeInstance(inst) },
   ]);
 }

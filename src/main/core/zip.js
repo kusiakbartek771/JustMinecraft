@@ -5,9 +5,13 @@ const path = require('path');
 const yauzl = require('yauzl');
 const { pipeline } = require('stream/promises');
 
+/** file = ścieżka albo Buffer (np. jar zagnieżdżony w innym jarze). */
 function open(file) {
   return new Promise((resolve, reject) => {
-    yauzl.open(file, { lazyEntries: true, autoClose: false, decodeStrings: true, validateEntrySizes: true }, (err, zf) => (err ? reject(err) : resolve(zf)));
+    const o = { lazyEntries: true, autoClose: false, decodeStrings: true, validateEntrySizes: true };
+    const cb = (err, zf) => (err ? reject(err) : resolve(zf));
+    if (Buffer.isBuffer(file)) yauzl.fromBuffer(file, o, cb);
+    else yauzl.open(file, o, cb);
   });
 }
 
