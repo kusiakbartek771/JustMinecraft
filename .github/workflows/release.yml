@@ -1,0 +1,38 @@
+name: Release
+
+# Wydanie: zmień "version" w package.json, zrób commit i wypchnij tag, np.:
+#   git tag v1.0.1 && git push origin v1.0.1
+# Workflow zbuduje aplikację na Windows, macOS i Linux i doda pliki do wydania na GitHubie.
+# Launchery użytkowników same zobaczą aktualizację (electron-updater).
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Linux – narzędzia do paczek deb/pacman
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libarchive-tools
+      - run: npm ci
+      - name: Build & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS bez certyfikatu Apple – aplikacja nie jest podpisana
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npx electron-builder --publish always

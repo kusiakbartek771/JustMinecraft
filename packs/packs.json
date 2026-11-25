@@ -1,0 +1,16 @@
+{
+  "_jak_dodac": "Dopisz paczkę do listy \"packs\" (wzór w \"_przyklad\"), zrób commit i push – pojawi się wszystkim w zakładce „Paczki i Drive” bez wydawania nowej wersji launchera.",
+  "_przyklad": {
+    "id": "moje-mody",
+    "name": "Moje mody",
+    "description": "Krótki opis paczki",
+    "icon": "⛏️",
+    "cover": "",
+    "mc": "1.21.1",
+    "loader": "fabric",
+    "loaderVersion": null,
+    "version": "1",
+    "drive": "https://drive.google.com/drive/folders/TWOJE_ID_FOLDERU"
+  },
+  "packs": []
+}
